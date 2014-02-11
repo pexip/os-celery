@@ -1,0 +1,26 @@
+Description: Remove pretty-printing nose-cover3 from build.
+ nose-cover3 is not essential to the build-proccess and is not packaged
+ for Debian. Thus removing it from the sources.
+Author: Michael Fladischer <FladischerMichael@fladi.at>
+Last-Update: 2013-07-01
+Forwared: not-needed
+
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -1,9 +1,5 @@
+ [nosetests]
+ where = celery/tests
+-cover3-branch = 1
+-cover3-html = 1
+-cover3-package = celery
+-cover3-exclude = celery.utils.debug,celery.tests.*,celery.bin.graph
+ 
+ [build_sphinx]
+ source-dir = docs/
+--- a/requirements/test.txt
++++ b/requirements/test.txt
+@@ -1,4 +1,3 @@
+ unittest2>=0.5.1
+ nose
+-nose-cover3
+ mock>=1.0.1

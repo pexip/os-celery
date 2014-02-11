@@ -1,0 +1,48 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python2,sphinxdoc
+
+.PHONY: override_dh_installman
+override_dh_installman:
+	set -e ; \
+	for doc in celery camqadm celerybeat celeryd-multi celeryd celeryev celeryctl; do \
+	  docbook-to-man debian/manpage.$$doc.sgml > $$doc.1; \
+	done
+	dh_installman
+
+.PHONY: override_dh_auto_build
+override_dh_auto_build:
+	PYTHONPATH=.:$$PYTHONPATH sphinx-build -b html -d .build/.doctrees -N docs .build/html
+	ln docs/images/celery_128.png .build/html/_images/celery_128.png
+	dh_auto_build
+
+.PHONY: override_dh_auto_test
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	set -e; \
+	for python in $(shell pyversions -r); do \
+	  rm -f test.db ; \
+	  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
+	done
+endif
+
+#.PHONY: override_dh_compress
+#override_dh_compress:
+#	dh_compress -X .js
+
+.PHONY: override_dh_clean
+override_dh_clean:
+	rm -rf .build
+	dh_clean
+
+.PHONY: override_dh_installinit
+override_dh_installinit:
+	ln extra/generic-init.d/celerybeat debian/celeryd.celerybeat.init
+	ln extra/generic-init.d/celeryd debian/celeryd.celeryd.init
+	dh_installinit --name celerybeat
+	dh_installinit --name celeryd
+
+.PHONY: override_dh_installchangelogs
+override_dh_installchangelogs:
+	dh_installchangelogs Changelog

@@ -1,0 +1,48 @@
+Description: Remove upstream detection of installed celery
+ Upstream tries to detect already installed versions of celery.app in order to
+ remove the whole directory. This leads to ImportErrors during the tests.
+Author: Michael Fladischer <FladischerMichael@fladi.at>
+Last-Update: 2013-09-03
+Forwarded: no
+
+--- a/setup.py
++++ b/setup.py
+@@ -22,38 +22,6 @@
+ if sys.version_info < (2, 6):
+     raise Exception('Celery 3.1 requires Python 2.6 or higher.')
+ 
+-downgrade_packages = [
+-    'celery.app.task',
+-]
+-orig_path = sys.path[:]
+-for path in (os.path.curdir, os.getcwd()):
+-    if path in sys.path:
+-        sys.path.remove(path)
+-try:
+-    import imp
+-    import shutil
+-    for pkg in downgrade_packages:
+-        try:
+-            parent, module = pkg.rsplit('.', 1)
+-            print('- Trying to upgrade %r in %r' % (module, parent))
+-            parent_mod = __import__(parent, None, None, [parent])
+-            _, mod_path, _ = imp.find_module(module, parent_mod.__path__)
+-            if mod_path.endswith('/' + module):
+-                print('- force upgrading previous installation')
+-                print('  - removing {0!r} package...'.format(mod_path))
+-                try:
+-                    shutil.rmtree(os.path.abspath(mod_path))
+-                except Exception:
+-                    sys.stderr.write('Could not remove {0!r}: {1!r}\n'.format(
+-                        mod_path, sys.exc_info[1]))
+-        except ImportError:
+-            print('- upgrade %s: no old version found.' % module)
+-except:
+-    pass
+-finally:
+-    sys.path[:] = orig_path
+-
+-
+ NAME = 'celery'
+ entrypoints = {}
+ extra = {}

@@ -1,0 +1,105 @@
+celery (3.1.9-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Refresh patches.
+  * Drop fix_dependencies.patch, as it is no longer needed.
+  * Add privacy.patch to drop external assets from documentation.
+  * Bump Build-Depends and Depends on python-billiard to >= 3.3.15.
+  * Bump Build-Depends and Depends on python-kombu to >= 3.0.12.
+  * Manually copy logo image to documentation as it does not get picked up by
+    sphinx automatically.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 11 Feb 2014 13:33:47 +0100
+
+celery (3.1.6-1) unstable; urgency=low
+
+  [ Michael Fladischer ]
+  * New upstream release (Closes: #711338).
+  * Bump Standards version to 3.9.5.
+  * Bump Build-Depends on debhelper to >= 8.1.0 to satisfy build-arch
+    and build-indep targets.
+  * Add build dependency on python-openssl to enable more tests.
+  * Add drop_downgrade.patch to remove upstream celery.app detection and
+    removal code.
+  * Add disable_unstable_tests.patch to disable randomly failing test.
+  * Add fix_test_crontab_is_due.patch to fix timeshifts in tests.
+  * Add locales to Build-Depends so LC_ALL=C.UTF-8 can be used.
+  * Make Build-Depends on python-mock versioned with (>= 1.0.1).
+  * Use LC_ALL=C.UTF-8 when running tests.
+  * Refresh existing patches.
+  * Install upstream changelog.
+  * Update upstream homepage URL to the official one.
+  * celeryd:
+    + Move daemon management scripts to the separate celeryd package.
+    + Document change in NEWS.
+    + Install init scripts from extra instead of contrib.
+    + Move default file from python-celery to celeryd package.
+    + Move postinst and postrm files from python-celery to celeryd package.
+    + Breaks python-celery (<< 3.0.24-1) to avoid file conflicts.
+    + Do not define CELERYD_PID_FILE in /etc/default/celeryd to enable
+      automatic generation by init.d script.
+    + Drop init.d/celeryevcam as it is no longer shipped by upstream.
+  * python-celery
+    + Install supervisord from extra instead of contrib.
+    + Add versioned dependency on python-billiard.
+    + Bump dependency on python-kombu(-doc) to >= 2.5.15.
+    + Add dependency on python-tz.
+    + Drop depenceny on python-amqplib, it has been replaced by
+      python-amqp/python-librabbitmq in python-kombu.
+    + Drop dependency on python-anyjson, as it is required by python-kombu which
+      already has it set as a versioned dependency.
+    + Install celery.1 manpage.
+    + Suggest python-celery-doc.
+  * python-celery-doc
+    + Adapt filenames in d/docs to new upstream names.
+    + Update directories in doc-base.
+
+  [ Jakub Wilk ]
+  * Use canonical URIs for Vcs-* fields.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Sun, 15 Dec 2013 20:58:41 +0100
+
+celery (2.5.3-4) unstable; urgency=low
+
+  * Unconditionally remove /var/log/celery on purge.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Fri, 01 Mar 2013 12:17:32 +0100
+
+celery (2.5.3-3) unstable; urgency=low
+
+  * Remove logfiles during purge if user and group are removed.
+  * Use /nonexistant as $HOME for user celery.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 12 Feb 2013 08:57:59 +0100
+
+celery (2.5.3-2) unstable; urgency=low
+
+  * Create user celery in maintainer scripts (Closes: #697195).
+  * Update year in d/copyright.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Sun, 13 Jan 2013 19:10:12 +0100
+
+celery (2.5.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * Bump dependencies on kombu to (>= 2.1.5).
+  * Update patches to remove nose-cover3.
+  * Enable init scripts.
+  * Update DEP-5 URL to 1.0.
+  * Bump to standards version 3.9.3.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Mon, 27 Feb 2012 14:58:29 +0100
+
+celery (2.4.6-1) unstable; urgency=low
+
+  * New upstream release.
+    Fixes: CVE-2011-4356
+  * Update copyright to 2012.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Mon, 02 Jan 2012 12:45:47 +0100
+
+celery (2.4.5-1) unstable; urgency=low
+
+  * Initial release (Closes: #526350)
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 27 Dec 2011 11:57:41 +0100

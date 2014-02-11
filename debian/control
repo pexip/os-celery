@@ -1,0 +1,119 @@
+Source: celery
+Section: python
+Priority: optional
+Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
+Uploaders: Michael Fladischer <FladischerMichael@fladi.at>
+Build-Depends: debhelper (>= 8.1.0~),
+               docbook-to-man,
+               dvipng,
+               locales,
+               texlive-latex-base,
+               texlive-latex-extra,
+               python-all (>= 2.7),
+               python-billiard (>= 3.3.0.14),
+               python-cl,
+               python-dateutil (>= 1.5),
+               python-doc,
+               python-gevent,
+               python-kombu (>= 3.0.12),
+               python-kombu-doc (>= 3.0.12),
+               python-mailer,
+               python-memcache,
+               python-mock (>= 1.0.1),
+               python-nose,
+               python-openssl,
+               python-pyparsing,
+               python-pytyrant,
+               python-redis,
+               python-setuptools,
+               python-sphinx (>= 1.0.7+dfsg),
+               python-sphinxcontrib.issuetracker,
+               python-sqlalchemy,
+               python-tz,
+               python-unittest2
+X-Python-Version: >= 2.7
+Standards-Version: 3.9.5
+Homepage: http://www.celeryproject.org/
+Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/celery/trunk/
+Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/celery/trunk/
+
+Package: python-celery
+Architecture: all
+Depends: python-billiard (>= 3.3.0.14),
+         python-cl,
+         python-dateutil (>= 1.5),
+         python-kombu (>= 3.0.12),
+         python-mailer,
+         python-memcache,
+         python-pkg-resources,
+         python-pyparsing,
+         python-tz,
+         ${misc:Depends},
+         ${python:Depends}
+Suggests: python-gevent, python-pytyrant, python-redis, python-sqlalchemy, python-celery-doc
+Description: async task/job queue based on message passing
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ The execution units, called tasks, are executed concurrently on one
+ or more worker nodes. Tasks can execute asynchronously (in the
+ background) or synchronously (wait until ready).
+ .
+ Celery is written in Python, but the protocol can be implemented
+ in any language. It can also operate with other languages using
+ webhooks.
+ .
+ The recommended message broker is RabbitMQ, but limited support for Redis,
+ Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
+ ORM) is also available. Celery is easy to integrate with Django, using the
+ python-django-celery package.
+
+Package: python-celery-doc
+Section: doc
+Architecture: all
+Depends: libjs-jquery, ${misc:Depends}, ${sphinxdoc:Depends}
+Description: async task/job queue based on message passing (Documentation)
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ The execution units, called tasks, are executed concurrently on one
+ or more worker nodes. Tasks can execute asynchronously (in the
+ background) or synchronously (wait until ready).
+ .
+ Celery is written in Python, but the protocol can be implemented
+ in any language. It can also operate with other languages using
+ webhooks.
+ .
+ The recommended message broker is RabbitMQ, but limited support for Redis,
+ Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
+ ORM) is also available. Celery is easy to integrate with Django, using the
+ python-django-celery package.
+ .
+ This package contains the documentation.
+
+Package: celeryd
+Architecture: all
+Depends: python-celery (= ${binary:Version}), ${misc:Depends}, adduser
+Breaks: python-celery (<< 3.0.24-1)
+Suggests: rabbitmq-server
+Description: async task/job queue based on message passing (daemons)
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ The execution units, called tasks, are executed concurrently on one
+ or more worker nodes. Tasks can execute asynchronously (in the
+ background) or synchronously (wait until ready).
+ .
+ Celery is written in Python, but the protocol can be implemented
+ in any language. It can also operate with other languages using
+ webhooks.
+ .
+ The recommended message broker is RabbitMQ, but limited support for Redis,
+ Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
+ ORM) is also available. Celery is easy to integrate with Django, using the
+ python-django-celery package.
+ .
+ This package contains the init scripts to start the celery daemons.
