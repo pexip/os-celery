@@ -1,3 +1,9 @@
+celery (3.1.9-1pexip1) pexip; urgency=low
+
+  * Prepare Pexip packaging
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 19 May 2014 11:32:44 +0000
+
 celery (3.1.9-1) unstable; urgency=medium
 
   * New upstream release.

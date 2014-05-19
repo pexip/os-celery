@@ -1,8 +1,9 @@
 Source: celery
 Section: python
 Priority: optional
-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
+XSBC-Pexip-Original-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>
 Build-Depends: debhelper (>= 8.1.0~),
                docbook-to-man,
                dvipng,
@@ -36,6 +37,7 @@ Standards-Version: 3.9.5
 Homepage: http://www.celeryproject.org/
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/celery/trunk/
 Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/celery/trunk/
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ jessie
 
 Package: python-celery
 Architecture: all
