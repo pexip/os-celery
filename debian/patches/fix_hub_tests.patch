@@ -1,0 +1,37 @@
+From 96eb2fa004b673cad06b3254c94d267af1034587 Mon Sep 17 00:00:00 2001
+From: Ask Solem <ask@celeryproject.org>
+Date: Thu, 20 Mar 2014 14:18:20 +0000
+Subject: [PATCH] Fixes hub tests
+
+---
+ celery/tests/worker/test_hub.py | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/celery/tests/worker/test_hub.py b/celery/tests/worker/test_hub.py
+index 7e4b14f..4e9e490 100644
+--- a/celery/tests/worker/test_hub.py
++++ b/celery/tests/worker/test_hub.py
+@@ -54,7 +54,11 @@ def test_acquire_release(self):
+         self.assertFalse(c3.called)
+ 
+         x.release()
++        self.assertEqual(x.value, 0)
++        x.release()
+         self.assertEqual(x.value, 1)
++        x.release()
++        self.assertEqual(x.value, 2)
+         c3.assert_called_with(3)
+ 
+     def test_bounded(self):
+@@ -83,7 +87,7 @@ def test_grow_shrink(self):
+         x.grow(2)
+         cb2.assert_called_with(2)
+         cb3.assert_called_with(3)
+-        self.assertEqual(x.value, 3)
++        self.assertEqual(x.value, 2)
+         self.assertEqual(x.initial_value, 3)
+ 
+         self.assertFalse(x._waiting)
+-- 
+1.9.3
+

@@ -3,3 +3,4 @@ lsb-init.patch
 intersphinx.patch
 disable_unstable_tests.patch
 privacy.patch
+fix_hub_tests.patch
