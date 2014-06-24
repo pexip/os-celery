@@ -8,6 +8,347 @@ This document contains change notes for bugfix releases in the 3.1.x series
 (Cipater), please see :ref:`whatsnew-3.1` for an overview of what's
 new in Celery 3.1.
 
+.. _verison-3.1.12:
+
+3.1.12
+======
+:release-date: 2014-06-09 10:12 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**
+
+    Now depends on :ref:`Kombu 3.0.19 <kombu:version-3.0.19>`.
+
+- **App**: Connections were not being closed after fork due to an error in the
+  after fork handler (Issue #2055).
+
+    This could manifest itself by causing framing errors when using RabbitMQ.
+    (``Unexpected frame``).
+
+- **Django**: ``django.setup()`` was being called too late when
+  using Django 1.7 (Issue #1802).
+
+- **Django**: Fixed problems with event timezones when using Django
+  (``Substantial drift``).
+
+    Celery did not take into account that Django modifies the
+    ``time.timeone`` attributes and friends.
+
+- **Canvas**: ``Signature.link`` now works when the link option is a scalar
+  value (Issue #2019).
+
+- **Prefork pool**: Fixed race conditions for when file descriptors are
+  removed from the event loop.
+
+    Fix contributed by Roger Hu.
+
+- **Prefork pool**: Improved solution for dividing tasks between child
+  processes.
+
+    This change should improve performance when there are many child
+    processes, and also decrease the chance that two subsequent tasks are
+    written to the same child process.
+
+- **Worker**: Now ignores unknown event types, instead of crashing.
+
+    Fix contributed by Illes Solt.
+
+- **Programs**: :program:`celery worker --detach` no longer closes open file
+  descriptors when :envvar:`C_FAKEFORK` is used so that the workers output
+  can be seen.
+
+- **Programs**: The default working directory for :program:`celery worker
+  --detach` is now the current working directory, not ``/``.
+
+- **Canvas**: ``signature(s, app=app)`` did not upgrade serialized signatures
+  to their original class (``subtask_type``) when the ``app`` keyword argument
+  was used.
+
+- **Control**: The ``duplicate nodename`` warning emitted by control commands
+  now shows the duplicate node name.
+
+- **Tasks**: Can now call ``ResultSet.get()`` on a result set without members.
+
+    Fix contributed by Alexey Kotlyarov.
+
+- **App**: Fixed strange traceback mangling issue for
+  ``app.connection_or_acquire``.
+
+- **Programs**: The :program:`celery multi stopwait` command is now documented
+  in usage.
+
+- **Other**: Fixed cleanup problem with ``PromiseProxy`` when an error is
+  raised while trying to evaluate the promise.
+
+- **Other**: The utility used to censor configuration values now handles
+  non-string keys.
+
+    Fix contributed by Luke Pomfrey.
+
+- **Other**: The ``inspect conf`` command did not handle non-string keys well.
+
+    Fix contributed by Jay Farrimond.
+
+- **Programs**: Fixed argument handling problem in
+  :program:`celery worker --detach`.
+
+    Fix contributed by Dmitry Malinovsky.
+
+- **Programs**: :program:`celery worker --detach` did not forward working
+  directory option (Issue #2003).
+
+- **Programs**: :program:`celery inspect registered` no longer includes
+  the list of built-in tasks.
+
+- **Worker**: The ``requires`` attribute for boot steps were not being handled
+  correctly (Issue #2002).
+
+- **Eventlet**: The eventlet pool now supports the ``pool_grow`` and
+  ``pool_shrink`` remote control commands.
+
+    Contributed by Mher Movsisyan.
+
+- **Eventlet**: The eventlet pool now implements statistics for
+  :program:``celery inspect stats``.
+
+    Contributed by Mher Movsisyan.
+
+- **Documentation**: Clarified ``Task.rate_limit`` behavior.
+
+    Contributed by Jonas Haag.
+
+- **Documentation**: ``AbortableTask`` examples now updated to use the new
+  API (Issue #1993).
+
+- **Documentation**: The security documentation examples used an out of date
+  import.
+
+    Fix contributed by Ian Dees.
+
+- **Init scripts**: The CentOS init scripts did not quote
+  :envvar:`CELERY_CHDIR`.
+
+    Fix contributed by ffeast.
+
+.. _version-3.1.11:
+
+3.1.11
+======
+:release-date: 2014-04-16 11:00 P.M UTC
+:release-by: Ask Solem
+
+- **Now compatible with RabbitMQ 3.3.0**
+
+    You need to run Celery 3.1.11 or later when using RabbitMQ 3.3,
+    and if you use the ``librabbitmq`` module you also have to upgrade
+    to librabbitmq 1.5.0:
+
+    .. code-block:: bash
+
+        $ pip install -U librabbitmq
+
+- **Requirements**:
+
+    - Now depends on :ref:`Kombu 3.0.15 <kombu:version-3.0.15>`.
+
+    - Now depends on `billiard 3.3.0.17`_.
+
+    - Bundle ``celery[librabbitmq]`` now depends on :mod:`librabbitmq` 1.5.0.
+
+.. _`billiard 3.3.0.17`:
+    https://github.com/celery/billiard/blob/master/CHANGES.txt
+
+- **Tasks**: The :setting:`CELERY_DEFAULT_DELIVERY_MODE` setting was being
+  ignored (Issue #1953).
+
+- **Worker**: New :option:`--heartbeat-interval` can be used to change the
+  time (in seconds) between sending event heartbeats.
+
+    Contributed by Matthew Duggan and Craig Northway.
+
+- **App**: Fixed memory leaks occurring when creating lots of temporary
+  app instances (Issue #1949).
+
+- **MongoDB**: SSL configuration with non-MongoDB transport breaks MongoDB
+  results backend (Issue #1973).
+
+    Fix contributed by Brian Bouterse.
+
+- **Logging**: The color formatter accidentally modified ``record.msg``
+  (Issue #1939).
+
+- **Results**: Fixed problem with task trails being stored multiple times,
+  causing ``result.collect()`` to hang (Issue #1936, Issue #1943).
+
+- **Results**: ``ResultSet`` now implements a ``.backend`` attribute for
+  compatibility with ``AsyncResult``.
+
+- **Results**: ``.forget()`` now also clears the local cache.
+
+- **Results**: Fixed problem with multiple calls to ``result._set_cache``
+  (Issue #1940).
+
+- **Results**: ``join_native`` populated result cache even if disabled.
+
+- **Results**: The YAML result serializer should now be able to handle storing
+  exceptions.
+
+- **Worker**: No longer sends task error emails for expected errors (in
+  ``@task(throws=(..., )))``.
+
+- **Canvas**: Fixed problem with exception deserialization when using
+  the JSON serializer (Issue #1987).
+
+- **Eventlet**: Fixes crash when ``celery.contrib.batches`` attempted to
+  cancel a non-existing timer (Issue #1984).
+
+- Can now import ``celery.version_info_t``, and ``celery.five`` (Issue #1968).
+
+
+.. _version-3.1.10:
+
+3.1.10
+======
+:release-date: 2014-03-22 09:40 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**:
+
+    - Now depends on :ref:`Kombu 3.0.14 <kombu:version-3.0.14>`.
+
+- **Results**:
+
+    Reliability improvements to the SQLAlchemy database backend. Previously the
+    connection from the MainProcess was improperly shared with the workers.
+    (Issue #1786)
+
+- **Redis:** Important note about events (Issue #1882).
+
+    There is a new transport option for Redis that enables monitors
+    to filter out unwanted events.  Enabling this option in the workers
+    will increase performance considerably:
+
+    .. code-block:: python
+
+        BROKER_TRANSPORT_OPTIONS = {'fanout_patterns': True}
+
+    Enabling this option means that your workers will not be able to see
+    workers with the option disabled (or is running an older version of
+    Celery), so if you do enable it then make sure you do so on all
+    nodes.
+
+    See :ref:`redis-caveats-fanout-patterns`.
+
+    This will be the default in Celery 3.2.
+
+- **Results**: The :class:`@AsyncResult` object now keeps a local cache
+  of the final state of the task.
+
+    This means that the global result cache can finally be disabled,
+    and you can do so by setting :setting:`CELERY_MAX_CACHED_RESULTS` to
+    :const:`-1`.  The lifetime of the cache will then be bound to the
+    lifetime of the result object, which will be the default behavior
+    in Celery 3.2.
+
+- **Events**: The "Substantial drift" warning message is now logged once
+  per node name only (Issue #1802).
+
+- **Worker**: Ability to use one log file per child process when using the
+  prefork pool.
+
+    This can be enabled by using the new ``%i`` and ``%I`` format specifiers
+    for the log file name.  See :ref:`worker-files-process-index`.
+
+- **Redis**: New experimental chord join implementation.
+
+    This is an optimization for chords when using the Redis result backend,
+    where the join operation is now considerably faster and using less
+    resources than the previous strategy.
+
+    The new option can be set in the result backend URL:
+
+        CELERY_RESULT_BACKEND = 'redis://localhost?new_join=1'
+
+    This must be enabled manually as it's incompatible
+    with workers and clients not using it, so be sure to enable
+    the option in all clients and workers if you decide to use it.
+
+- **Multi**: With ``-opt:index`` (e.g. :option:`-c:1`) the index now always refers
+  to the position of a node in the argument list.
+
+    This means that referring to a number will work when specifying a list
+    of node names and not just for a number range:
+
+    .. code-block:: bash
+
+        celery multi start A B C D -c:1 4 -c:2-4 8
+
+    In this example ``1`` refers to node A (as it's the first node in the
+    list).
+
+- **Signals**: The sender argument to ``Signal.connect`` can now be a proxy
+  object, which means that it can be used with the task decorator
+  (Issue #1873).
+
+- **Task**: A regression caused the ``queue`` argument to ``Task.retry`` to be
+  ignored (Issue #1892).
+
+- **App**: Fixed error message for :meth:`~@Celery.config_from_envvar`.
+
+    Fix contributed by Dmitry Malinovsky.
+
+- **Canvas**: Chords can now contain a group of other chords (Issue #1921).
+
+- **Canvas**: Chords can now be combined when using the amqp result backend
+  (a chord where the callback is also a chord).
+
+- **Canvas**: Calling ``result.get()`` for a chain task will now complete
+  even if one of the tasks in the chain is ``ignore_result=True``
+  (Issue #1905).
+
+- **Canvas**: Worker now also logs chord errors.
+
+- **Canvas**: A chord task raising an exception will now result in
+  any errbacks (``link_error``) to the chord callback to also be called.
+
+- **Results**: Reliability improvements to the SQLAlchemy database backend
+  (Issue #1786).
+
+    Previously the connection from the ``MainProcess`` was improperly
+    inherited by child processes.
+
+    Fix contributed by Ionel Cristian Mărieș.
+
+- **Task**: Task callbacks and errbacks are now called using the group
+  primitive.
+
+- **Task**: ``Task.apply`` now properly sets ``request.headers``
+  (Issue #1874).
+
+- **Worker**: Fixed ``UnicodeEncodeError`` occuring when worker is started
+  by `supervisord`.
+
+    Fix contributed by Codeb Fan.
+
+- **Beat**: No longer attempts to upgrade a newly created database file
+  (Issue #1923).
+
+- **Beat**: New setting :setting:``CELERYBEAT_SYNC_EVERY`` can be be used
+  to control file sync by specifying the number of tasks to send between
+  each sync.
+
+    Contributed by Chris Clark.
+
+- **Commands**: :program:`celery inspect memdump` no longer crashes
+  if the :mod:`psutil` module is not installed (Issue #1914).
+
+- **Worker**: Remote control commands now always accepts json serialized
+  messages (Issue #1870).
+
+- **Worker**: Gossip will now drop any task related events it receives
+  by mistake (Issue #1882).
+
+
 .. _version-3.1.9:
 
 3.1.9

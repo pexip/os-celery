@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: celery
-Version: 3.1.9
+Version: 3.1.12
 Summary: Distributed Task Queue
 Home-page: http://celeryproject.org
 Author: Ask Solem
@@ -12,7 +12,7 @@ Description: =================================
         
         .. image:: http://cloud.github.com/downloads/celery/celery/celery_128.png
         
-        :Version: 3.1.9 (Cipater)
+        :Version: 3.1.12 (Cipater)
         :Web: http://celeryproject.org/
         :Download: http://pypi.python.org/pypi/celery/
         :Source: http://github.com/celery/celery/
@@ -89,8 +89,8 @@ Description: =================================
         .. _`Next steps`:
             http://docs.celeryproject.org/en/latest/getting-started/next-steps.html
         
-        Celery is…
-        ==========
+        Celery is...
+        ============
         
         - **Simple**
         
@@ -127,8 +127,8 @@ Description: =================================
             Custom pool implementations, serializers, compression schemes, logging,
             schedulers, consumers, producers, autoscalers, broker transports and much more.
         
-        It supports…
-        ============
+        It supports...
+        ==============
         
             - **Message Transports**
         
@@ -136,7 +136,7 @@ Description: =================================
                 - MongoDB_ (experimental), Amazon SQS (experimental),
                 - CouchDB_ (experimental), SQLAlchemy_ (experimental),
                 - Django ORM (experimental), `IronMQ`_
-                - and more…
+                - and more...
         
             - **Concurrency**
         
@@ -242,9 +242,9 @@ Description: =================================
         commas.
         ::
         
-            $ pip install celery[librabbitmq]
+            $ pip install "celery[librabbitmq]"
         
-            $ pip install celery[librabbitmq,redis,auth,msgpack]
+            $ pip install "celery[librabbitmq,redis,auth,msgpack]"
         
         The following bundles are available:
         
@@ -445,6 +445,7 @@ Classifier: Programming Language :: Python :: 2.6
 Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Programming Language :: Python :: Implementation :: Jython

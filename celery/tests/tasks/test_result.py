@@ -66,15 +66,15 @@ class test_AsyncResult(AppCase):
     def test_children(self):
         x = self.app.AsyncResult('1')
         children = [EagerResult(str(i), i, states.SUCCESS) for i in range(3)]
+        x._cache = {'children': children, 'status': states.SUCCESS}
         x.backend = Mock()
-        x.backend.get_children.return_value = children
-        x.backend.READY_STATES = states.READY_STATES
         self.assertTrue(x.children)
         self.assertEqual(len(x.children), 3)
 
     def test_propagates_for_parent(self):
         x = self.app.AsyncResult(uuid())
         x.backend = Mock()
+        x.backend.get_task_meta.return_value = {}
         x.parent = EagerResult(uuid(), KeyError('foo'), states.FAILURE)
         with self.assertRaises(KeyError):
             x.get(propagate=True)
@@ -89,10 +89,11 @@ class test_AsyncResult(AppCase):
         x = self.app.AsyncResult(tid)
         child = [self.app.AsyncResult(uuid()).as_tuple()
                  for i in range(10)]
-        x.backend._cache[tid] = {'children': child}
+        x._cache = {'children': child}
         self.assertTrue(x.children)
         self.assertEqual(len(x.children), 10)
 
+        x._cache = {'status': states.SUCCESS}
         x.backend._cache[tid] = {'result': None}
         self.assertIsNone(x.children)
 
@@ -122,13 +123,11 @@ class test_AsyncResult(AppCase):
 
     def test_iterdeps(self):
         x = self.app.AsyncResult('1')
-        x.backend._cache['1'] = {'status': states.SUCCESS, 'result': None}
         c = [EagerResult(str(i), i, states.SUCCESS) for i in range(3)]
+        x._cache = {'status': states.SUCCESS, 'result': None, 'children': c}
         for child in c:
             child.backend = Mock()
             child.backend.get_children.return_value = []
-        x.backend.get_children = Mock()
-        x.backend.get_children.return_value = c
         it = x.iterdeps()
         self.assertListEqual(list(it), [
             (None, x),
@@ -136,7 +135,7 @@ class test_AsyncResult(AppCase):
             (x, c[1]),
             (x, c[2]),
         ])
-        x.backend._cache.pop('1')
+        x._cache = None
         x.ready = Mock()
         x.ready.return_value = False
         with self.assertRaises(IncompleteStream):
@@ -276,6 +275,13 @@ class test_ResultSet(AppCase):
         b.supports_native_join = True
         x.get()
         self.assertTrue(x.join_native.called)
+
+    def test_get_empty(self):
+        x = self.app.ResultSet([])
+        self.assertIsNone(x.supports_native_join)
+        x.join = Mock(name='join')
+        x.get()
+        self.assertTrue(x.join.called)
 
     def test_add(self):
         x = self.app.ResultSet([1])
@@ -490,6 +496,7 @@ class test_GroupResult(AppCase):
         subtasks = [self.app.AsyncResult(uuid(), backend=backend)
                     for i in range(10)]
         ts = self.app.GroupResult(uuid(), subtasks)
+        ts.app.backend = backend
         backend.ids = [subtask.id for subtask in subtasks]
         res = ts.join_native()
         self.assertEqual(res, list(range(10)))
@@ -527,6 +534,7 @@ class test_GroupResult(AppCase):
         subtasks = [self.app.AsyncResult(uuid(), backend=backend)
                     for i in range(10)]
         ts = self.app.GroupResult(uuid(), subtasks)
+        ts.app.backend = backend
         backend.ids = [subtask.id for subtask in subtasks]
         self.assertEqual(len(list(ts.iter_native())), 10)
 

@@ -10,13 +10,13 @@ Build-Depends: debhelper (>= 8.1.0~),
                texlive-latex-base,
                texlive-latex-extra,
                python-all (>= 2.7),
-               python-billiard (>= 3.3.0.14),
+               python-billiard (>= 3.3.0.17),
                python-cl,
                python-dateutil (>= 1.5),
                python-doc,
                python-gevent,
-               python-kombu (>= 3.0.12),
-               python-kombu-doc (>= 3.0.12),
+               python-kombu (>= 3.0.19),
+               python-kombu-doc (>= 3.0.19),
                python-mailer,
                python-memcache,
                python-mock (>= 1.0.1),
@@ -27,11 +27,11 @@ Build-Depends: debhelper (>= 8.1.0~),
                python-redis,
                python-setuptools,
                python-sphinx (>= 1.0.7+dfsg),
-               python-sphinxcontrib.issuetracker,
                python-sqlalchemy,
                python-tz,
                python-unittest2
 X-Python-Version: >= 2.7
+XS-Testsuite: autopkgtest
 Standards-Version: 3.9.5
 Homepage: http://www.celeryproject.org/
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/celery/trunk/
@@ -39,10 +39,10 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/celery/tru
 
 Package: python-celery
 Architecture: all
-Depends: python-billiard (>= 3.3.0.14),
+Depends: python-billiard (>= 3.3.0.17),
          python-cl,
          python-dateutil (>= 1.5),
-         python-kombu (>= 3.0.12),
+         python-kombu (>= 3.0.19),
          python-mailer,
          python-memcache,
          python-pkg-resources,

@@ -288,8 +288,8 @@ class Request(object):
                         'hostname': self.hostname, 'is_eager': False,
                         'delivery_info': self.delivery_info})
         retval = trace_task(self.task, self.id, self.args, kwargs, request,
-                            **{'hostname': self.hostname,
-                               'loader': self.app.loader})
+                            hostname=self.hostname, loader=self.app.loader,
+                            app=self.app)
         self.acknowledge()
         return retval
 
@@ -454,11 +454,13 @@ class Request(object):
         )
         task = self.task
         if task.throws and isinstance(eobj, task.throws):
-            severity, exc_info = logging.INFO, None
-            description = 'raised expected'
+            do_send_mail, severity, exc_info, description = (
+                False, logging.INFO, None, 'raised expected',
+            )
         else:
-            severity = logging.ERROR
-            description = 'raised unexpected'
+            do_send_mail, severity, description = (
+                True, logging.ERROR, 'raised unexpected',
+            )
         format = self.error_msg
         if send_failed_event:
             self.send_event(
@@ -505,7 +507,8 @@ class Request(object):
                                    'hostname': self.hostname,
                                    'internal': internal}})
 
-        task.send_error_email(context, einfo.exception)
+        if do_send_mail:
+            task.send_error_email(context, einfo.exception)
 
     def acknowledge(self):
         """Acknowledge task."""
@@ -537,9 +540,11 @@ class Request(object):
                 'worker_pid': self.worker_pid}
 
     def __str__(self):
-        return '{0.name}[{0.id}]{1}{2}'.format(self,
-               ' eta:[{0}]'.format(self.eta) if self.eta else '',
-               ' expires:[{0}]'.format(self.expires) if self.expires else '')
+        return '{0.name}[{0.id}]{1}{2}'.format(
+            self,
+            ' eta:[{0}]'.format(self.eta) if self.eta else '',
+            ' expires:[{0}]'.format(self.expires) if self.expires else '',
+        )
     shortinfo = __str__
 
     def __repr__(self):

@@ -12,6 +12,7 @@
 """
 from __future__ import absolute_import
 
+from collections import MutableSequence
 from copy import deepcopy
 from functools import partial as _partial, reduce
 from operator import itemgetter
@@ -194,7 +195,7 @@ class Signature(dict):
         return s
     partial = clone
 
-    def freeze(self, _id=None):
+    def freeze(self, _id=None, group_id=None, chord=None):
         opts = self.options
         try:
             tid = opts['task_id']
@@ -202,6 +203,10 @@ class Signature(dict):
             tid = opts['task_id'] = _id or uuid()
         if 'reply_to' not in opts:
             opts['reply_to'] = self.app.oid
+        if group_id:
+            opts['group_id'] = group_id
+        if chord:
+            opts['chord'] = chord
         return self.AsyncResult(tid)
     _freeze = freeze
 
@@ -238,6 +243,8 @@ class Signature(dict):
 
     def append_to_list_option(self, key, value):
         items = self.options.setdefault(key, [])
+        if not isinstance(items, MutableSequence):
+            items = self.options[key] = [items]
         if value not in items:
             items.append(value)
         return value
@@ -473,13 +480,13 @@ class group(Signature):
                 task['args'] = task._merge(d['args'])[0]
         return group(tasks, app=app, **kwdict(d['options']))
 
-    def apply_async(self, args=(), kwargs=None, **options):
+    def apply_async(self, args=(), kwargs=None, add_to_parent=True, **options):
         tasks = _maybe_clone(self.tasks, app=self._app)
         if not tasks:
             return self.freeze()
         type = self.type
-        return type(*type.prepare(dict(self.options, **options),
-                                  tasks, args))
+        return type(*type.prepare(dict(self.options, **options), tasks, args),
+                    add_to_parent=add_to_parent)
 
     def set_immutable(self, immutable):
         for task in self.tasks:
@@ -502,16 +509,20 @@ class group(Signature):
     def __call__(self, *partial_args, **options):
         return self.apply_async(partial_args, **options)
 
-    def freeze(self, _id=None):
+    def freeze(self, _id=None, group_id=None, chord=None):
         opts = self.options
         try:
             gid = opts['task_id']
         except KeyError:
             gid = opts['task_id'] = uuid()
+        if group_id:
+            opts['group_id'] = group_id
+        if chord:
+            opts['chord'] = group_id
         new_tasks, results = [], []
         for task in self.tasks:
             task = maybe_signature(task, app=self._app).clone()
-            results.append(task._freeze())
+            results.append(task.freeze(group_id=group_id, chord=chord))
             new_tasks.append(task)
         self.tasks = self.kwargs['tasks'] = new_tasks
         return self.app.GroupResult(gid, results)
@@ -552,6 +563,9 @@ class chord(Signature):
         )
         self.subtask_type = 'chord'
 
+    def freeze(self, _id=None, group_id=None, chord=None):
+        return self.body.freeze(_id, group_id=group_id, chord=chord)
+
     @classmethod
     def from_dict(self, d, app=None):
         args, d['kwargs'] = self._unpack_args(**kwdict(d['kwargs']))
@@ -578,7 +592,9 @@ class chord(Signature):
                 app = self.body.type.app
         return app.tasks['celery.chord']
 
-    def apply_async(self, args=(), kwargs={}, task_id=None, **options):
+    def apply_async(self, args=(), kwargs={}, task_id=None,
+                    producer=None, publisher=None, connection=None,
+                    router=None, result_cls=None, **options):
         body = kwargs.get('body') or self.kwargs['body']
         kwargs = dict(self.kwargs, **kwargs)
         body = body.clone(**options)
@@ -626,7 +642,7 @@ class chord(Signature):
 
 
 def signature(varies, *args, **kwargs):
-    if not (args or kwargs) and isinstance(varies, dict):
+    if isinstance(varies, dict):
         if isinstance(varies, Signature):
             return varies.clone()
         return Signature.from_dict(varies)
