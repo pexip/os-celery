@@ -1,3 +1,9 @@
+celery (3.1.9-1pexip2) pexip; urgency=low
+
+  * Add patch to fix init script
+
+ -- Colin Bradbury <colin@pexip.com>  Wed, 16 July 2014 10:38:00 +0000
+
 celery (3.1.9-1pexip1) pexip; urgency=low
 
   * Prepare Pexip packaging

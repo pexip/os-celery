@@ -4,3 +4,4 @@ intersphinx.patch
 disable_unstable_tests.patch
 privacy.patch
 fix_hub_tests.patch
+use_startstopdaemon_to_change_uid.patch
