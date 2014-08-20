@@ -23,7 +23,7 @@ You can start the worker in the foreground by executing the command:
 
 .. code-block:: bash
 
-    $ celery --app=app worker -l info
+    $ celery -A proj worker -l info
 
 For a full list of available command-line options see
 :mod:`~celery.bin.worker`, or simply do:
@@ -38,9 +38,9 @@ host name with the :option:`--hostname|-n` argument:
 
 .. code-block:: bash
 
-    $ celery worker --loglevel=INFO --concurrency=10 -n worker1.%h
-    $ celery worker --loglevel=INFO --concurrency=10 -n worker2.%h
-    $ celery worker --loglevel=INFO --concurrency=10 -n worker3.%h
+    $ celery -A proj worker --loglevel=INFO --concurrency=10 -n worker1.%h
+    $ celery -A proj worker --loglevel=INFO --concurrency=10 -n worker2.%h
+    $ celery -A proj worker --loglevel=INFO --concurrency=10 -n worker3.%h
 
 The hostname argument can expand the following variables:
 
@@ -133,6 +133,62 @@ The worker's main process overrides the following signals:
 +--------------+-------------------------------------------------+
 | :sig:`USR2`  | Remote debug, see :mod:`celery.contrib.rdb`.    |
 +--------------+-------------------------------------------------+
+
+.. _worker-files:
+
+Variables in file paths
+=======================
+
+The file path arguments for :option:`--logfile`, :option:`--pidfile` and :option:`--statedb`
+can contain variables that the worker will expand:
+
+Node name replacements
+----------------------
+
+- ``%h``:  Hostname including domain name.
+- ``%n``:  Hostname only.
+- ``%d``:  Domain name only.
+- ``%i``:  Prefork pool process index or 0 if MainProcess.
+- ``%I``:  Prefork pool process index with separator.
+
+E.g. if the current hostname is ``george.example.com`` then
+these will expand to:
+
+- ``--logfile=%h.log`` -> :file:`george.example.com.log`
+- ``--logfile=%n.log`` -> :file:`george.log`
+- ``--logfile=%d`` -> :file:`example.com.log`
+
+.. _worker-files-process-index:
+
+Prefork pool process index
+--------------------------
+
+The prefork pool process index specifiers will expand into a different
+filename depending on the process that will eventually need to open the file.
+
+This can be used to specify one log file per child process.
+
+Note that the numbers will stay within the process limit even if processes
+exit or if autoscale/maxtasksperchild/time limits are used.  I.e. the number
+is the *process index* not the process count or pid.
+
+* ``%i`` - Pool process index or 0 if MainProcess.
+
+    Where ``-n worker1@example.com -c2 -f %n-%i.log`` will result in
+    three log files:
+
+        - :file:`worker1-0.log` (main process)
+        - :file:`worker1-1.log` (pool process 1)
+        - :file:`worker1-2.log` (pool process 2)
+
+* ``%I`` - Pool process index with separator.
+
+    Where ``-n worker1@example.com -c2 -f %n%I.log`` will result in
+    three log files:
+
+        - :file:`worker1.log` (main process)
+        - :file:`worker1-1.log`` (pool process 1)
+        - :file:`worker1-2.log`` (pool process 2)
 
 .. _worker-concurrency:
 
@@ -234,12 +290,16 @@ Of course, using the higher-level interface to set rate limits is much
 more convenient, but there are commands that can only be requested
 using :meth:`~@control.broadcast`.
 
+Commands
+========
+
 .. control:: revoke
 
-Revoking tasks
-==============
-pool support: all
-broker support: *amqp, redis*
+``revoke``: Revoking tasks
+--------------------------
+:pool support: all
+:broker support: *amqp, redis*
+:command: :program:`celery -A proj control revoke <task_id>`
 
 All worker nodes keeps a memory of revoked task ids, either in-memory or
 persistent on disk (see :ref:`worker-persistent-revokes`).
@@ -333,6 +393,8 @@ name:
 
     celery multi start 2 -l info --statedb=/var/run/celery/%n.state
 
+
+See also :ref:`worker-files`
 
 Note that remote control commands must be working for revokes to work.
 Remote control commands are only supported by the RabbitMQ (amqp) and Redis
@@ -498,7 +560,7 @@ by giving a comma separated list of queues to the :option:`-Q` option:
 
 .. code-block:: bash
 
-    $ celery worker -l info -Q foo,bar,baz
+    $ celery -A proj worker -l info -Q foo,bar,baz
 
 If the queue name is defined in :setting:`CELERY_QUEUES` it will use that
 configuration, but if it's not defined in the list of queues Celery will
@@ -522,7 +584,7 @@ named "``foo``" you can use the :program:`celery control` program:
 
 .. code-block:: bash
 
-    $ celery control add_consumer foo
+    $ celery -A proj control add_consumer foo
     -> worker1.local: OK
         started consuming from u'foo'
 
@@ -531,7 +593,7 @@ If you want to specify a specific worker you can use the
 
 .. code-block:: bash
 
-    $ celery control add_consumer foo -d worker1.local
+    $ celery -A proj control add_consumer foo -d worker1.local
 
 The same can be accomplished dynamically using the :meth:`@control.add_consumer` method::
 
@@ -573,14 +635,14 @@ you can use the :program:`celery control` program:
 
 .. code-block:: bash
 
-    $ celery control cancel_consumer foo
+    $ celery -A proj control cancel_consumer foo
 
 The :option:`--destination` argument can be used to specify a worker, or a
 list of workers, to act on the command:
 
 .. code-block:: bash
 
-    $ celery control cancel_consumer foo -d worker1.local
+    $ celery -A proj control cancel_consumer foo -d worker1.local
 
 
 You can also cancel consumers programmatically using the
@@ -601,7 +663,7 @@ the :control:`active_queues` control command:
 
 .. code-block:: bash
 
-    $ celery inspect active_queues
+    $ celery -A proj inspect active_queues
     [...]
 
 Like all other remote control commands this also supports the
@@ -610,7 +672,7 @@ reply to the request:
 
 .. code-block:: bash
 
-    $ celery inspect active_queues -d worker1.local
+    $ celery -A proj inspect active_queues -d worker1.local
     [...]
 
 

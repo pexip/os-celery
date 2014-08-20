@@ -206,7 +206,10 @@ class test_Worker(WorkerAppCase):
         # test when there are too few output lines
         # to draft the ascii art onto
         prev, cd.ARTLINES = cd.ARTLINES, ['the quick brown fox']
-        self.assertTrue(worker.startup_info())
+        try:
+            self.assertTrue(worker.startup_info())
+        finally:
+            cd.ARTLINES = prev
 
     @disable_stdouts
     def test_run(self):
@@ -322,8 +325,11 @@ class test_Worker(WorkerAppCase):
             app=self.app, redirect_stdouts=False, no_color=True,
         )
         prev, self.app.log.setup = self.app.log.setup, Mock()
-        worker.setup_logging()
-        self.assertFalse(self.app.log.setup.call_args[1]['colorize'])
+        try:
+            worker.setup_logging()
+            self.assertFalse(self.app.log.setup.call_args[1]['colorize'])
+        finally:
+            self.app.log.setup = prev
 
     @disable_stdouts
     def test_startup_info_pool_is_str(self):
@@ -443,8 +449,10 @@ class test_funs(WorkerAppCase):
     def test_parse_options(self):
         cmd = worker()
         cmd.app = self.app
-        opts, args = cmd.parse_options('worker', ['--concurrency=512'])
+        opts, args = cmd.parse_options('worker', ['--concurrency=512',
+                                       '--heartbeat-interval=10'])
         self.assertEqual(opts.concurrency, 512)
+        self.assertEqual(opts.heartbeat_interval, 10)
 
     @disable_stdouts
     def test_main(self):

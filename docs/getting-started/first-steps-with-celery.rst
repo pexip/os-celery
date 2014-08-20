@@ -177,7 +177,7 @@ For a complete listing of the command-line options available, do:
 
     $  celery worker --help
 
-There also several other commands available, and help is also available:
+There are also several other commands available, and help is also available:
 
 .. code-block:: bash
 
@@ -350,7 +350,7 @@ contain any syntax errors, you can try to import it:
 
 For a complete reference of configuration options, see :ref:`configuration`.
 
-To demonstrate the power of configuration files, this how you would
+To demonstrate the power of configuration files, this is how you would
 route a misbehaving task to a dedicated queue:
 
 :file:`celeryconfig.py`:
@@ -379,7 +379,7 @@ for the task at runtime:
 
 .. code-block:: bash
 
-    $ celery control rate_limit tasks.add 10/m
+    $ celery -A tasks control rate_limit tasks.add 10/m
     worker@example.com: OK
         new rate limit set successfully
 

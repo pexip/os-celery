@@ -25,7 +25,7 @@ from billiard.einfo import ExceptionInfo
 from kombu.exceptions import EncodeError
 from kombu.utils import kwdict
 
-from celery import current_app
+from celery import current_app, group
 from celery import states, signals
 from celery._state import _task_stack
 from celery.app import set_default_app
@@ -200,8 +200,10 @@ def build_tracer(name, task, loader=None, hostname=None, store_errors=True,
         I = Info(state, exc)
         R = I.handle_error_state(task, eager=eager)
         if call_errbacks:
-            [signature(errback, app=app).apply_async((uuid, ))
-             for errback in request.errbacks or []]
+            group(
+                [signature(errback, app=app)
+                 for errback in request.errbacks or []], app=app,
+            ).apply_async((uuid, ))
         return I, R, I.state, I.retval
 
     def trace_task(uuid, args, kwargs, request=None):
@@ -255,8 +257,27 @@ def build_tracer(name, task, loader=None, hostname=None, store_errors=True,
                     try:
                         # callback tasks must be applied before the result is
                         # stored, so that result.children is populated.
-                        [signature(callback, app=app).apply_async((retval, ))
-                            for callback in task_request.callbacks or []]
+
+                        # groups are called inline and will store trail
+                        # separately, so need to call them separately
+                        # so that the trail's not added multiple times :(
+                        # (Issue #1936)
+                        callbacks = task.request.callbacks
+                        if callbacks:
+                            if len(task.request.callbacks) > 1:
+                                sigs, groups = [], []
+                                for sig in callbacks:
+                                    sig = signature(sig, app=app)
+                                    if isinstance(sig, group):
+                                        groups.append(sig)
+                                    else:
+                                        sigs.append(sig)
+                                for group_ in groups:
+                                    group.apply_async((retval, ))
+                                if sigs:
+                                    group(sigs).apply_async(retval, )
+                            else:
+                                signature(callbacks[0], app=app).delay(retval)
                         if publish_result:
                             store_result(
                                 uuid, retval, SUCCESS, request=task_request,
@@ -272,7 +293,7 @@ def build_tracer(name, task, loader=None, hostname=None, store_errors=True,
                 # -* POST *-
                 if state not in IGNORE_STATES:
                     if task_request.chord:
-                        on_chord_part_return(task)
+                        on_chord_part_return(task, state, R)
                     if task_after_return:
                         task_after_return(
                             state, retval, uuid, args, kwargs, None,
@@ -336,7 +357,7 @@ def eager_trace_task(task, uuid, args, kwargs, request=None, **opts):
 def report_internal_error(task, exc):
     _type, _value, _tb = sys.exc_info()
     try:
-        _value = task.backend.prepare_exception(exc)
+        _value = task.backend.prepare_exception(exc, 'pickle')
         exc_info = ExceptionInfo((_type, _value, _tb), internal=True)
         warn(RuntimeWarning(
             'Exception raised outside body: {0!r}:\n{1}'.format(
