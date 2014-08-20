@@ -252,7 +252,7 @@ class test_App(AppCase):
             _state._task_stack.pop()
 
     def test_task_not_shared(self):
-        with patch('celery.app.base.shared_task') as sh:
+        with patch('celery.app.base.connect_on_app_finalize') as sh:
             @self.app.task(shared=False)
             def foo():
                 pass
@@ -644,7 +644,7 @@ class test_App(AppCase):
 
 class test_defaults(AppCase):
 
-    def test_str_to_bool(self):
+    def test_strtobool(self):
         for s in ('false', 'no', '0'):
             self.assertFalse(defaults.strtobool(s))
         for s in ('true', 'yes', '1'):

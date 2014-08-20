@@ -31,8 +31,9 @@ class Pidbox(object):
         self._forward_clock = self.c.app.clock.forward
 
     def on_message(self, body, message):
-        self._forward_clock()  # just increase clock as clients usually don't
-                               # have a valid clock to adjust with.
+        # just increase clock as clients usually don't
+        # have a valid clock to adjust with.
+        self._forward_clock()
         try:
             self.node.handle_message(body, message)
         except KeyError as exc:
@@ -44,6 +45,7 @@ class Pidbox(object):
     def start(self, c):
         self.node.channel = c.connection.channel()
         self.consumer = self.node.listen(callback=self.on_message)
+        self.consumer.on_decode_error = c.on_decode_error
 
     def on_stop(self):
         pass

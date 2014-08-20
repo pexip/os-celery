@@ -1,3 +1,35 @@
+celery (3.1.12-1pexip1) pexip; urgency=low
+
+  * New upstream release.
+
+ -- John-Mark Bell <jmb@pexip.com>  Wed, 20 Aug 2014 15:56:13 +0100
+
+celery (3.1.12-1) unstable; urgency=low
+
+  * New upstream release.
+  * Drop python-sphinxcontrib.issuetracker from Build-Depends as it is no
+    longer needed (Closes: #750528).
+  * Bump Depends and Build-Depends for kombu to 3.0.19.
+  * Add autopkgtest that runs the upstream test suite against the installed
+    packages.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 24 Jun 2014 22:37:27 +0200
+
+celery (3.1.11-1) unstable; urgency=low
+
+  * New upstream release.
+  * Refresh patches.
+  * Check PGP signature on upstream tarball:
+    + Add signature URL to debian/watch.
+    + Include upstream public PGP key 030A2708.
+    + Allow debian/upstream-signing-key.pgp to be included as a binary.
+  * Replace duplicate file in documentation with symlink.
+  * Bump Build-Depends and Depends for python-billiard to (>= 3.3.0.17).
+  * Bump Build-Depends and Depends for python-kombu to (>= 3.0.15).
+  * Update files in celery.egg-info to be cleaned.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Wed, 23 Apr 2014 15:31:00 +0200
+
 celery (3.1.9-1pexip2) pexip; urgency=low
 
   * Add patch to fix init script

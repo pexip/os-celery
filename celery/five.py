@@ -28,7 +28,7 @@ except ImportError:  # pragma: no cover
     def Counter():  # noqa
         return defaultdict(int)
 
-############## py3k #########################################################
+# ############# py3k #########################################################
 import sys
 PY3 = sys.version_info[0] == 3
 
@@ -144,17 +144,17 @@ def with_metaclass(Type, skip_attrs=set(['__dict__', '__weakref__'])):
     return _clone_with_metaclass
 
 
-############## collections.OrderedDict ######################################
+# ############# collections.OrderedDict ######################################
 # was moved to kombu
 from kombu.utils.compat import OrderedDict  # noqa
 
-############## threading.TIMEOUT_MAX #######################################
+# ############# threading.TIMEOUT_MAX ########################################
 try:
     from threading import TIMEOUT_MAX as THREAD_TIMEOUT_MAX
 except ImportError:
     THREAD_TIMEOUT_MAX = 1e10  # noqa
 
-############## format(int, ',d') ##########################
+# ############# format(int, ',d') ############################################
 
 if sys.version_info >= (2, 7):  # pragma: no cover
     def format_d(i):
@@ -169,7 +169,7 @@ else:  # pragma: no cover
         return s + ','.join(reversed(groups))
 
 
-############## Module Generation ##########################
+# ############# Module Generation ############################################
 
 # Utilities to dynamically
 # recreate modules, either for lazy loading or
@@ -296,7 +296,7 @@ def reclassmethod(method):
     return classmethod(fun_of_method(method))
 
 
-class MagicModule(ModuleType):
+class LazyModule(ModuleType):
     _compat_modules = ()
     _all_by_module = {}
     _direct = {}
@@ -322,7 +322,7 @@ class MagicModule(ModuleType):
 
 
 def create_module(name, attrs, cls_attrs=None, pkg=None,
-                  base=MagicModule, prepare_attr=None):
+                  base=LazyModule, prepare_attr=None):
     fqdn = '.'.join([pkg.__name__, name]) if pkg else name
     cls_attrs = {} if cls_attrs is None else cls_attrs
     pkg, _, modname = name.rpartition('.')
@@ -336,7 +336,7 @@ def create_module(name, attrs, cls_attrs=None, pkg=None,
 
 
 def recreate_module(name, compat_modules=(), by_module={}, direct={},
-                    base=MagicModule, **attrs):
+                    base=LazyModule, **attrs):
     old_module = sys.modules[name]
     origins = get_origins(by_module)
     compat_modules = COMPAT_MODULES.get(name, ())

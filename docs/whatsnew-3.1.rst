@@ -76,7 +76,7 @@ so I cannot recommend them for production use.
 The next version of Celery 3.2 will focus on performance and removing
 rarely used parts of the library.  Work has also started on a new message
 protocol, supporting multiple languages and more.  The initial draft can
-be found :ref:`here <protov2draft>`.
+be found :ref:`here <message-protocol-task-v2`.
 
 This has probably been the hardest release I've worked on, so no
 introduction to this changelog would be complete without a massive
@@ -536,7 +536,7 @@ the task is always the process to retrieve the result.
 
 It uses Kombu to send and retrieve results, and each client
 uses a unique queue for replies to be sent to.  This avoids
-the significant overhead of the original amqp backend which creates
+the significant overhead of the original amqp result backend which creates
 one queue per task.
 
 By default results sent using this backend will not persist, so they won't
@@ -705,6 +705,13 @@ In Other News
             58fcd260-2e32-4308-a2ea-f5be4a24f7f4]>
         >>> g()
         <GroupResult: e1094b1d-08fc-4e14-838e-6d601b99da6d [70c0fb3d-b60e-4b22-8df7-aa25b9abc86d, 58fcd260-2e32-4308-a2ea-f5be4a24f7f4]>
+
+- Chord exception behavior defined (Issue #1172).
+
+    From this version the chord callback will change state to FAILURE
+    when a task part of a chord raises an exception.
+
+    See more at :ref:`chord-errors`.
 
 -  New ability to specify additional command line options
    to the worker and beat programs.
@@ -1204,8 +1211,9 @@ Fixes
 - Eventlet/gevent/solo/threads pools now properly handles :exc:`BaseException`
   errors raised by tasks.
 
-- Autoscale and ``pool_grow``/``pool_shrink`` remote control commands
-  will now also automatically increase and decrease the consumer prefetch count.
+- :control:`autoscale` and :control:`pool_grow`/:control:`pool_shrink` remote
+  control commands will now also automatically increase and decrease the
+  consumer prefetch count.
 
     Fix contributed by Daniel M. Taub.
 

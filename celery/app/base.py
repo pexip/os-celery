@@ -13,7 +13,6 @@ import threading
 import warnings
 
 from collections import defaultdict, deque
-from contextlib import contextmanager
 from copy import deepcopy
 from operator import attrgetter
 
@@ -26,25 +25,27 @@ from kombu.utils import cached_property, uuid
 from celery import platforms
 from celery import signals
 from celery._state import (
-    _task_stack, _tls, get_current_app, set_default_app,
-    _register_app, get_current_worker_task,
+    _task_stack, get_current_app, _set_current_app, set_default_app,
+    _register_app, get_current_worker_task, connect_on_app_finalize,
+    _announce_app_finalized,
 )
 from celery.exceptions import AlwaysEagerIgnored, ImproperlyConfigured
 from celery.five import items, values
 from celery.loaders import get_loader_cls
 from celery.local import PromiseProxy, maybe_evaluate
-from celery.utils import shadowsig
 from celery.utils.functional import first, maybe_list
 from celery.utils.imports import instantiate, symbol_by_name
-from celery.utils.objects import mro_lookup
+from celery.utils.objects import FallbackContext, mro_lookup
 
 from .annotations import prepare as prepare_annotations
-from .builtins import shared_task, load_shared_tasks
 from .defaults import DEFAULTS, find_deprecated_settings
 from .registry import TaskRegistry
 from .utils import (
     AppPickler, Settings, bugreport, _unpickle_app, _unpickle_app_v2, appstr,
 )
+
+# Load all builtin tasks
+from . import builtins  # noqa
 
 __all__ = ['Celery']
 
@@ -59,6 +60,8 @@ and as such the configuration could not be loaded.
 Please set this variable and make it point to
 a configuration module."""
 
+_after_fork_registered = False
+
 
 def app_has_custom(app, attr):
     return mro_lookup(app.__class__, attr, stop=(Celery, object),
@@ -69,6 +72,31 @@ def _unpickle_appattr(reverse_name, args):
     """Given an attribute name and a list of args, gets
     the attribute from the current app and calls it."""
     return get_current_app()._rgetattr(reverse_name)(*args)
+
+
+def _global_after_fork(obj):
+    # Previously every app would call:
+    #    `register_after_fork(app, app._after_fork)`
+    # but this created a leak as `register_after_fork` stores concrete object
+    # references and once registered an object cannot be removed without
+    # touching and iterating over the private afterfork registry list.
+    #
+    # See Issue #1949
+    from celery import _state
+    from multiprocessing import util as mputil
+    for app in _state._apps:
+        try:
+            app._after_fork(obj)
+        except Exception as exc:
+            if mputil._logger:
+                mputil._logger.info(
+                    'after forker raised exception: %r', exc, exc_info=1)
+
+
+def _ensure_after_fork():
+    global _after_fork_registered
+    _after_fork_registered = True
+    register_after_fork(_global_after_fork, _global_after_fork)
 
 
 class Celery(object):
@@ -148,7 +176,7 @@ class Celery(object):
         _register_app(self)
 
     def set_current(self):
-        _tls.current_app = self
+        _set_current_app(self)
 
     def set_default(self):
         set_default_app(self)
@@ -184,8 +212,8 @@ class Celery(object):
             # a differnt task instance.  This makes sure it will always use
             # the task instance from the current app.
             # Really need a better solution for this :(
-            from . import shared_task as proxies_to_curapp
-            return proxies_to_curapp(*args, _force_evaluate=True, **opts)
+            from . import shared_task
+            return shared_task(*args, _force_evaluate=True, **opts)
 
         def inner_create_task_cls(shared=True, filter=None, **opts):
             _filt = filter  # stupid 2to3
@@ -194,7 +222,7 @@ class Celery(object):
                 if shared:
                     cons = lambda app: app._task_from_fun(fun, **opts)
                     cons.__name__ = fun.__name__
-                    shared_task(cons)
+                    connect_on_app_finalize(cons)
                 if self.accept_magic_kwargs:  # compat mode
                     task = self._task_from_fun(fun, **opts)
                     if filter:
@@ -238,7 +266,6 @@ class Celery(object):
             '__doc__': fun.__doc__,
             '__module__': fun.__module__,
             '__wrapped__': fun}, **options))()
-        shadowsig(T, fun)  # for inspect.getargspec
         task = self._tasks[T.name]  # return global instance.
         return task
 
@@ -248,7 +275,7 @@ class Celery(object):
                 if auto and not self.autofinalize:
                     raise RuntimeError('Contract breach: app not finalized')
                 self.finalized = True
-                load_shared_tasks(self)
+                _announce_app_finalized(self)
 
                 pending = self._pending
                 while pending:
@@ -275,7 +302,8 @@ class Celery(object):
         if not module_name:
             if silent:
                 return False
-            raise ImproperlyConfigured(ERR_ENVVAR_NOT_SET.format(module_name))
+            raise ImproperlyConfigured(
+                ERR_ENVVAR_NOT_SET.format(variable_name))
         return self.config_from_object(module_name, silent=silent, force=force)
 
     def config_from_cmdline(self, argv, namespace='celery'):
@@ -358,27 +386,20 @@ class Celery(object):
         )
     broker_connection = connection
 
-    @contextmanager
-    def connection_or_acquire(self, connection=None, pool=True,
-                              *args, **kwargs):
-        if connection:
-            yield connection
-        else:
-            if pool:
-                with self.pool.acquire(block=True) as connection:
-                    yield connection
-            else:
-                with self.connection() as connection:
-                    yield connection
+    def _acquire_connection(self, pool=True):
+        """Helper for :meth:`connection_or_acquire`."""
+        if pool:
+            return self.pool.acquire(block=True)
+        return self.connection()
+
+    def connection_or_acquire(self, connection=None, pool=True, *_, **__):
+        return FallbackContext(connection, self._acquire_connection, pool=pool)
     default_connection = connection_or_acquire  # XXX compat
 
-    @contextmanager
     def producer_or_acquire(self, producer=None):
-        if producer:
-            yield producer
-        else:
-            with self.amqp.producer_pool.acquire(block=True) as producer:
-                yield producer
+        return FallbackContext(
+            producer, self.amqp.producer_pool.acquire, block=True,
+        )
     default_producer = producer_or_acquire  # XXX compat
 
     def prepare_config(self, c):
@@ -584,7 +605,7 @@ class Celery(object):
     @property
     def pool(self):
         if self._pool is None:
-            register_after_fork(self, self._after_fork)
+            _ensure_after_fork()
             limit = self.conf.BROKER_POOL_LIMIT
             self._pool = self.connection().Pool(limit=limit)
         return self._pool

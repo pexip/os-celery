@@ -98,7 +98,7 @@ class test_MongoBackend(AppCase):
 
             connection = self.backend._get_connection()
             mock_Connection.assert_called_once_with(
-                host='mongodb://localhost:27017', ssl=False, max_pool_size=10,
+                host='mongodb://localhost:27017', max_pool_size=10,
                 auto_start_request=False)
             self.assertEqual(sentinel.connection, connection)
 
@@ -113,7 +113,7 @@ class test_MongoBackend(AppCase):
 
             connection = self.backend._get_connection()
             mock_Connection.assert_called_once_with(
-                host=mongodb_uri, ssl=False, max_pool_size=10,
+                host=mongodb_uri, max_pool_size=10,
                 auto_start_request=False)
             self.assertEqual(sentinel.connection, connection)
 
@@ -196,9 +196,10 @@ class test_MongoBackend(AppCase):
         mock_get_database.assert_called_once_with()
         mock_database.__getitem__.assert_called_once_with(MONGODB_COLLECTION)
         self.assertEqual(
-            ['status', 'task_id', 'date_done', 'traceback', 'result',
-             'children'],
-            list(ret_val.keys()))
+            list(sorted(['status', 'task_id', 'date_done', 'traceback',
+                         'result', 'children'])),
+            list(sorted(ret_val.keys())),
+        )
 
     @patch('celery.backends.mongodb.MongoBackend._get_database')
     def test_get_task_meta_for_no_result(self, mock_get_database):
@@ -298,7 +299,7 @@ class test_MongoBackend(AppCase):
         self.backend.taskmeta_collection = MONGODB_COLLECTION
 
         mock_database = MagicMock(spec=['__getitem__', '__setitem__'])
-        mock_collection = Mock()
+        self.backend.collections = mock_collection = Mock()
 
         mock_get_database.return_value = mock_database
         mock_database.__getitem__.return_value = mock_collection
@@ -309,7 +310,7 @@ class test_MongoBackend(AppCase):
         mock_get_database.assert_called_once_with()
         mock_database.__getitem__.assert_called_once_with(
             MONGODB_COLLECTION)
-        mock_collection.assert_called_once_with()
+        self.assertTrue(mock_collection.remove.called)
 
     def test_get_database_authfailure(self):
         x = MongoBackend(app=self.app)
