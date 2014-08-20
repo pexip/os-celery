@@ -1,6 +1,8 @@
 celery (3.1.12-1pexip1) pexip; urgency=low
 
   * New upstream release.
+  * debian/patches/fix_hub_tests.patch:
+    Drop patch superceded by new upstream.
 
  -- John-Mark Bell <jmb@pexip.com>  Wed, 20 Aug 2014 15:56:13 +0100
 
