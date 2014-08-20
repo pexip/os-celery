@@ -1,0 +1,13 @@
+Index: celery/celery/tests/security/test_certificate.py
+===================================================================
+--- celery.orig/celery/tests/security/test_certificate.py	2014-08-13 11:41:27.028556353 +1000
++++ celery/celery/tests/security/test_certificate.py	2014-08-13 11:41:54.659917069 +1000
+@@ -23,7 +23,7 @@
+         self.assertRaises(SecurityError, Certificate, KEY1)
+ 
+     def test_has_expired(self):
+-        self.assertFalse(Certificate(CERT1).has_expired())
++        self.assertTrue(Certificate(CERT1).has_expired())
+ 
+ 
+ class test_CertStore(SecurityCase):
