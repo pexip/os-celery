@@ -176,14 +176,14 @@ class TaskType(type):
             # Hairy stuff,  here to be compatible with 2.x.
             # People should not use non-abstract task classes anymore,
             # use the task decorator.
-            from celery.app.builtins import shared_task
+            from celery._state import connect_on_app_finalize
             unique_name = '.'.join([task_module, name])
             if unique_name not in cls._creation_count:
                 # the creation count is used as a safety
                 # so that the same task is not added recursively
                 # to the set of constructors.
                 cls._creation_count[unique_name] = 1
-                shared_task(_CompatShared(
+                connect_on_app_finalize(_CompatShared(
                     unique_name,
                     lambda app: TaskType.__new__(cls, name, bases,
                                                  dict(attrs, _app=app)),
@@ -313,7 +313,7 @@ class Task(object):
     #: :setting:`CELERY_ACKS_LATE` setting.
     acks_late = None
 
-    #: List/tuple of expected exceptions.
+    #: Tuple of expected exceptions.
     #:
     #: These are errors that are expected in normal operation
     #: and that should not be regarded as a real error by the worker.
@@ -556,12 +556,12 @@ class Task(object):
         )
 
     def subtask_from_request(self, request=None, args=None, kwargs=None,
-                             **extra_options):
+                             queue=None, **extra_options):
         request = self.request if request is None else request
         args = request.args if args is None else args
         kwargs = request.kwargs if kwargs is None else kwargs
         limit_hard, limit_soft = request.timelimit or (None, None)
-        options = dict({
+        options = {
             'task_id': request.id,
             'link': request.callbacks,
             'link_error': request.errbacks,
@@ -569,7 +569,10 @@ class Task(object):
             'chord': request.chord,
             'soft_time_limit': limit_soft,
             'time_limit': limit_hard,
-        }, **request.delivery_info or {})
+        }
+        options.update(
+            {'queue': queue} if queue else (request.delivery_info or {})
+        )
         return self.subtask(args, kwargs, options, type=self, **extra_options)
 
     def retry(self, args=None, kwargs=None, exc=None, throw=True,
@@ -710,6 +713,7 @@ class Task(object):
                    'loglevel': options.get('loglevel', 0),
                    'callbacks': maybe_list(link),
                    'errbacks': maybe_list(link_error),
+                   'headers': options.get('headers'),
                    'delivery_info': {'is_eager': True}}
         if self.accept_magic_kwargs:
             default_kwargs = {'task_name': task.name,

@@ -7,5 +7,6 @@ camqadm.1
 celery.1
 celery.egg-info/PKG-INFO
 celery.egg-info/SOURCES.txt
+celery.egg-info/entry_points.txt
 celery.egg-info/requires.txt
 debian/celeryd.*.init

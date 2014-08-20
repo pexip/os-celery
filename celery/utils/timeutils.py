@@ -8,6 +8,7 @@
 """
 from __future__ import absolute_import
 
+import numbers
 import os
 import time as _time
 
@@ -48,9 +49,6 @@ TIME_UNITS = (('day', 60 * 60 * 24.0, lambda n: format(n, '.2f')),
 ZERO = timedelta(0)
 
 _local_timezone = None
-
-__timezone__ = -_time.timezone
-__altzone__ = -_time.altzone
 
 
 class LocalTimezone(tzinfo):
@@ -134,7 +132,7 @@ timezone = _Zone()
 
 def maybe_timedelta(delta):
     """Coerces integer to timedelta if `delta` is an integer."""
-    if isinstance(delta, (int, float)):
+    if isinstance(delta, numbers.Real):
         return timedelta(seconds=delta)
     return delta
 
@@ -333,10 +331,10 @@ class ffwd(object):
         }, **extra)
 
 
-def utcoffset():
-    if _time.daylight:
-        return __altzone__ // 3600
-    return __timezone__ // 3600
+def utcoffset(time=_time):
+    if time.daylight:
+        return time.altzone // 3600
+    return time.timezone // 3600
 
 
 def adjust_timestamp(ts, offset, here=utcoffset):

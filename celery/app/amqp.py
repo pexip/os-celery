@@ -8,6 +8,8 @@
 """
 from __future__ import absolute_import
 
+import numbers
+
 from datetime import timedelta
 from weakref import WeakValueDictionary
 
@@ -200,6 +202,7 @@ class TaskProducer(Producer):
         exchange = exchange or self.exchange
         self.queues = self.app.amqp.queues  # shortcut
         self.default_queue = self.app.amqp.default_queue
+        self._default_mode = self.app.conf.CELERY_DEFAULT_DELIVERY_MODE
         super(TaskProducer, self).__init__(channel, exchange, *args, **kwargs)
 
     def publish_task(self, task_name, task_args=None, task_kwargs=None,
@@ -235,6 +238,8 @@ class TaskProducer(Producer):
             routing_key = routing_key or queue.routing_key
         if declare is None and queue and not isinstance(queue, Broadcast):
             declare = [queue]
+        if delivery_mode is None:
+            delivery_mode = self._default_mode
 
         # merge default and custom policy
         retry = self.retry if retry is None else retry
@@ -252,7 +257,7 @@ class TaskProducer(Producer):
             eta = now + timedelta(seconds=countdown)
             if self.utc:
                 eta = to_utc(eta).astimezone(self.app.timezone)
-        if isinstance(expires, (int, float)):
+        if isinstance(expires, numbers.Real):
             now = now or self.app.now()
             expires = now + timedelta(seconds=expires)
             if self.utc:

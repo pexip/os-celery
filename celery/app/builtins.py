@@ -11,36 +11,16 @@ from __future__ import absolute_import
 
 from collections import deque
 
-from celery._state import get_current_worker_task
+from celery._state import get_current_worker_task, connect_on_app_finalize
 from celery.utils import uuid
+from celery.utils.log import get_logger
 
-__all__ = ['shared_task', 'load_shared_tasks']
+__all__ = []
 
-#: global list of functions defining tasks that should be
-#: added to all apps.
-_shared_tasks = set()
-
-
-def shared_task(constructor):
-    """Decorator that specifies a function that generates a built-in task.
-
-    The function will then be called for every new app instance created
-    (lazily, so more exactly when the task registry for that app is needed).
-
-    The function must take a single ``app`` argument.
-    """
-    _shared_tasks.add(constructor)
-    return constructor
+logger = get_logger(__name__)
 
 
-def load_shared_tasks(app):
-    """Create built-in tasks for an app instance."""
-    constructors = set(_shared_tasks)
-    for constructor in constructors:
-        constructor(app)
-
-
-@shared_task
+@connect_on_app_finalize
 def add_backend_cleanup_task(app):
     """The backend cleanup task can be used to clean up the default result
     backend.
@@ -57,7 +37,7 @@ def add_backend_cleanup_task(app):
     return backend_cleanup
 
 
-@shared_task
+@connect_on_app_finalize
 def add_unlock_chord_task(app):
     """This task is used by result backends without native chord support.
 
@@ -105,16 +85,17 @@ def add_unlock_chord_task(app):
                     )
                 except StopIteration:
                     reason = repr(exc)
-
-                app._tasks[callback.task].backend.fail_from_current_stack(
-                    callback.id, exc=ChordError(reason),
-                )
+                logger.error('Chord %r raised: %r', group_id, exc, exc_info=1)
+                app.backend.chord_error_from_stack(callback,
+                                                   ChordError(reason))
             else:
                 try:
                     callback.delay(ret)
                 except Exception as exc:
-                    app._tasks[callback.task].backend.fail_from_current_stack(
-                        callback.id,
+                    logger.error('Chord %r raised: %r', group_id, exc,
+                                 exc_info=1)
+                    app.backend.chord_error_from_stack(
+                        callback,
                         exc=ChordError('Callback error: {0!r}'.format(exc)),
                     )
         else:
@@ -123,7 +104,7 @@ def add_unlock_chord_task(app):
     return unlock_chord
 
 
-@shared_task
+@connect_on_app_finalize
 def add_map_task(app):
     from celery.canvas import signature
 
@@ -134,7 +115,7 @@ def add_map_task(app):
     return xmap
 
 
-@shared_task
+@connect_on_app_finalize
 def add_starmap_task(app):
     from celery.canvas import signature
 
@@ -145,7 +126,7 @@ def add_starmap_task(app):
     return xstarmap
 
 
-@shared_task
+@connect_on_app_finalize
 def add_chunk_task(app):
     from celery.canvas import chunks as _chunks
 
@@ -155,7 +136,7 @@ def add_chunk_task(app):
     return chunks
 
 
-@shared_task
+@connect_on_app_finalize
 def add_group_task(app):
     _app = app
     from celery.canvas import maybe_signature, signature
@@ -167,7 +148,8 @@ def add_group_task(app):
         accept_magic_kwargs = False
         _decorated = True
 
-        def run(self, tasks, result, group_id, partial_args):
+        def run(self, tasks, result, group_id, partial_args,
+                add_to_parent=True):
             app = self.app
             result = result_from_tuple(result, app)
             # any partial args are added to all tasks in the group
@@ -179,10 +161,10 @@ def add_group_task(app):
                     [stask.apply(group_id=group_id) for stask in taskit],
                 )
             with app.producer_or_acquire() as pub:
-                [stask.apply_async(group_id=group_id, publisher=pub,
+                [stask.apply_async(group_id=group_id, producer=pub,
                                    add_to_parent=False) for stask in taskit]
             parent = get_current_worker_task()
-            if parent:
+            if add_to_parent and parent:
                 parent.add_trail(result)
             return result
 
@@ -221,7 +203,7 @@ def add_group_task(app):
     return Group
 
 
-@shared_task
+@connect_on_app_finalize
 def add_chain_task(app):
     from celery.canvas import (
         Signature, chain, chord, group, maybe_signature, maybe_unroll_group,
@@ -317,7 +299,7 @@ def add_chain_task(app):
     return Chain
 
 
-@shared_task
+@connect_on_app_finalize
 def add_chord_task(app):
     """Every chord is executed in a dedicated task, so that the chord
     can be used as a signature, and this generates the task
@@ -340,36 +322,24 @@ def add_chord_task(app):
             app = self.app
             propagate = default_propagate if propagate is None else propagate
             group_id = uuid()
-            AsyncResult = app.AsyncResult
-            prepare_member = self._prepare_member
 
             # - convert back to group if serialized
             tasks = header.tasks if isinstance(header, group) else header
             header = group([
                 maybe_signature(s, app=app).clone() for s in tasks
-            ])
+            ], app=self.app)
             # - eager applies the group inline
             if eager:
                 return header.apply(args=partial_args, task_id=group_id)
 
-            results = [AsyncResult(prepare_member(task, body, group_id))
-                       for task in header.tasks]
+            body.setdefault('chord_size', len(header.tasks))
+            results = header.freeze(group_id=group_id, chord=body).results
 
             return self.backend.apply_chord(
                 header, partial_args, group_id,
                 body, interval=interval, countdown=countdown,
                 max_retries=max_retries, propagate=propagate, result=results,
             )
-
-        def _prepare_member(self, task, body, group_id):
-            opts = task.options
-            # d.setdefault would work but generating uuid's are expensive
-            try:
-                task_id = opts['task_id']
-            except KeyError:
-                task_id = opts['task_id'] = uuid()
-            opts.update(chord=body, group_id=group_id)
-            return task_id
 
         def apply_async(self, args=(), kwargs={}, task_id=None,
                         group_id=None, chord=None, **options):
