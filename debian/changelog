@@ -1,3 +1,32 @@
+celery (3.1.13-2) unstable; urgency=low
+
+  [Brian May]
+  * Remove version requirement in wrappers. Closes: #758640.
+  * Add breaks/replaces for python-celery-common as it now contains files
+    formally in python-celery.
+
+  [Michael Fladischer]
+  * Remove PHONY target declarations in d/rules.
+
+ -- Brian May <bam@debian.org>  Thu, 21 Aug 2014 09:03:40 +1000
+
+celery (3.1.13-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Brian May <bam@debian.org>  Mon, 18 Aug 2014 13:30:19 +1000
+
+celery (3.1.12-2) unstable; urgency=medium
+
+  [ Michael Fladischer ]
+  * Drop python-cl from Depends and Build-Depends as it is no longer needed.
+
+  [ Brian May ]
+  * Python3 package. Closes: #753555.
+  * Change certificate test, as test certificate has expired. Closes: #757897.
+
+ -- Brian May <bam@debian.org>  Wed, 13 Aug 2014 12:13:59 +1000
+
 celery (3.1.12-1) unstable; urgency=low
 
   * New upstream release.

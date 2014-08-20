@@ -429,6 +429,7 @@ docs/reference/celery.worker.state.rst
 docs/reference/celery.worker.strategy.rst
 docs/reference/index.rst
 docs/sec/CELERYSA-0001.txt
+docs/sec/CELERYSA-0002.txt
 docs/templates/readme.txt
 docs/tutorials/daemonizing.rst
 docs/tutorials/debugging.rst

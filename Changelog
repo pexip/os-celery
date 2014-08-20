@@ -8,7 +8,69 @@ This document contains change notes for bugfix releases in the 3.1.x series
 (Cipater), please see :ref:`whatsnew-3.1` for an overview of what's
 new in Celery 3.1.
 
-.. _verison-3.1.12:
+.. _version-3.1.13:
+
+3.1.13
+======
+
+Security Fixes
+--------------
+
+* [Security: `CELERYSA-0002`_] Insecure default umask.
+
+    The built-in utility used to daemonize the Celery worker service sets
+    an insecure umask by default (umask 0).
+
+    This means that any files or directories created by the worker will
+    end up having world-writable permissions.
+
+    Special thanks to Red Hat for originally discovering and reporting the
+    issue!
+
+    This version will no longer set a default umask by default, so if unset
+    the umask of the parent process will be used.
+
+.. _`CELERYSA-0002`:
+    http://github.com/celery/celery/tree/master/docs/sec/CELERYSA-0002.txt
+
+News
+----
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.21 <kombu:version-3.0.21>`.
+
+    - Now depends on :mod:`billiard` 3.3.0.18.
+
+
+- **App**: ``backend`` argument now also sets the :setting:`CELERY_RESULT_BACKEND`
+  setting.
+
+- **Task**: ``signature_from_request`` now propagates ``reply_to`` so that
+  the RPC backend works with retried tasks (Issue #2113).
+
+- **Task**: ``retry`` will no longer attempt to requeue the task if sending
+  the retry message fails.
+
+    Unrelated exceptions being raised could cause a message loop, so it was
+    better to remove this behavior.
+
+- **Beat**: Accounts for standard 1ms drift by always waking up 0.010s
+  earlier.
+
+    This will adjust the latency so that the periodic tasks will not move
+    1ms after every invocation.
+
+- Documentation fixes
+
+    Contributed by Yuval Greenfield, Lucas Wiman, nicholsonjf
+
+- **Worker**: Removed an outdated assert statement that could lead to errors
+  being masked (Issue #2086).
+
+
+
+.. _version-3.1.12:
 
 3.1.12
 ======
