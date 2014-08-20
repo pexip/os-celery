@@ -1,3 +1,9 @@
+celery (3.1.12-1pexip2) pexip; urgency=low
+
+  * Reinstate patch to fix init script.
+
+ -- John-Mark Bell <jmb@pexip.com>  Wed, 20 Aug 2014 18:06:42 +0100
+
 celery (3.1.12-1pexip1) pexip; urgency=low
 
   * New upstream release.
