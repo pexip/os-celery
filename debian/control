@@ -7,7 +7,7 @@ XSBC-Pexip-Original-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>,
  Brian May <bam@debian.org>
 Build-Depends: debhelper (>= 8.1.0~), dh-python,
  docbook-to-man, dvipng, locales, texlive-latex-base, texlive-latex-extra,
- python-all (>= 2.7), python-billiard (>= 3.3.0.17),
+ python-all (>= 2.7), python-billiard (>= 3.3.0.18),
  python-dateutil (>= 1.5), python-doc,
  python-kombu (>= 3.0.21), python-kombu-doc (>= 3.0.21),
  python-mock (>= 1.0.1), python-nose,
@@ -15,7 +15,7 @@ Build-Depends: debhelper (>= 8.1.0~), dh-python,
  python-redis, python-setuptools, python-sphinx (>= 1.0.7+dfsg),
  python-sqlalchemy, python-tz, python-unittest2, python-billiard,
  python-gevent, python-pytyrant,
-# python3-all, python3-billiard (>= 3.3.0.17),
+# python3-all, python3-billiard (>= 3.3.0.18),
 # python3-dateutil (>= 1.5), python3-doc,
 # python3-kombu (>= 3.0.21), python-kombu-doc (>= 3.0.21),
 # python3-mock (>= 1.0.1), python3-nose,
@@ -57,7 +57,7 @@ Description: async task/job queue based on message passing
 
 Package: python-celery
 Architecture: all
-Depends: python-billiard (>= 3.3.0.17),
+Depends: python-billiard (>= 3.3.0.18),
          python-dateutil (>= 1.5),
          python-kombu (>= 3.0.21),
          python-pkg-resources,
@@ -86,7 +86,7 @@ Description: async task/job queue based on message passing
 
 #Package: python3-celery
 #Architecture: all
-#Depends: python3-billiard (>= 3.3.0.17),
+#Depends: python3-billiard (>= 3.3.0.18),
 #         python3-dateutil (>= 1.5),
 #         python3-kombu (>= 3.0.21),
 #         python3-mailer,
