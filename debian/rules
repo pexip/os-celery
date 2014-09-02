@@ -43,9 +43,9 @@ override_dh_auto_install:
 	dh_auto_install
 	set e; for FILENAME in celery celerybeat celeryd celeryd-multi; do \
 	  rm $(PREFIX)/usr/bin/$$FILENAME; \
-	  rm $(PREFIX3)/usr/bin/$$FILENAME; \
+	  #rm $(PREFIX3)/usr/bin/$$FILENAME; \
 	done
-	rmdir --ignore-fail-on-non-empty --parents $(PREFIX)/usr/bin $(PREFIX3)/usr/bin
+	rmdir --ignore-fail-on-non-empty --parents $(PREFIX)/usr/bin #$(PREFIX3)/usr/bin
 
 override_dh_install:
 	dh_install
