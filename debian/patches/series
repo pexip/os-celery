@@ -3,5 +3,5 @@ lsb-init.patch
 intersphinx.patch
 disable_unstable_tests.patch
 privacy.patch
-use_startstopdaemon_to_change_uid.patch
 fix_tests
+use_startstopdaemon_to_change_uid.patch

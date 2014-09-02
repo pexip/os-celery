@@ -30,7 +30,7 @@ from celery._state import (
     _announce_app_finalized,
 )
 from celery.exceptions import AlwaysEagerIgnored, ImproperlyConfigured
-from celery.five import items, values
+from celery.five import values
 from celery.loaders import get_loader_cls
 from celery.local import PromiseProxy, maybe_evaluate
 from celery.utils.functional import first, maybe_list
@@ -127,7 +127,6 @@ class Celery(object):
         self.clock = LamportClock()
         self.main = main
         self.amqp_cls = amqp or self.amqp_cls
-        self.backend_cls = backend or self.backend_cls
         self.events_cls = events or self.events_cls
         self.loader_cls = loader or self.loader_cls
         self.log_cls = log or self.log_cls
@@ -161,6 +160,8 @@ class Celery(object):
         self._preconf = changes or {}
         if broker:
             self._preconf['BROKER_URL'] = broker
+        if backend:
+            self._preconf['CELERY_RESULT_BACKEND'] = backend
         if include:
             self._preconf['CELERY_IMPORTS'] = include
 
@@ -450,17 +451,14 @@ class Celery(object):
         self.on_configure()
         if self._config_source:
             self.loader.config_from_object(self._config_source)
+        defaults = dict(deepcopy(DEFAULTS), **self._preconf)
         self.configured = True
         s = Settings({}, [self.prepare_config(self.loader.conf),
-                          deepcopy(DEFAULTS)])
-
+                          defaults])
         # load lazy config dict initializers.
         pending = self._pending_defaults
         while pending:
             s.add_defaults(maybe_evaluate(pending.popleft()()))
-        if self._preconf:
-            for key, value in items(self._preconf):
-                setattr(s, key, value)
         return s
 
     def _after_fork(self, obj_):

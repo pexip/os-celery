@@ -3,31 +3,26 @@ Section: python
 Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-XSBC-Pexip-Original-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>
-Build-Depends: debhelper (>= 8.1.0~),
-               docbook-to-man,
-               dvipng,
-               locales,
-               texlive-latex-base,
-               texlive-latex-extra,
-               python-all (>= 2.7),
-               python-billiard (>= 3.3.0.17),
-               python-cl,
-               python-dateutil (>= 1.5),
-               python-doc,
-               python-gevent,
-               python-kombu (>= 3.0.19),
-               python-kombu-doc (>= 3.0.19),
-               python-mock (>= 1.0.1),
-               python-nose,
-               python-openssl,
-               python-pytyrant,
-               python-redis,
-               python-setuptools,
-               python-sphinx (>= 1.0.7+dfsg),
-               python-sqlalchemy,
-               python-tz,
-               python-unittest2
+XSBC-Pexip-Original-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>,
+ Brian May <bam@debian.org>
+Build-Depends: debhelper (>= 8.1.0~), dh-python,
+ docbook-to-man, dvipng, locales, texlive-latex-base, texlive-latex-extra,
+ python-all (>= 2.7), python-billiard (>= 3.3.0.17),
+ python-dateutil (>= 1.5), python-doc,
+ python-kombu (>= 3.0.19), python-kombu-doc (>= 3.0.19),
+ python-mock (>= 1.0.1), python-nose,
+ python-openssl,
+ python-redis, python-setuptools, python-sphinx (>= 1.0.7+dfsg),
+ python-sqlalchemy, python-tz, python-unittest2, python-billiard,
+ python-gevent, python-pytyrant,
+ python3-all, python3-billiard (>= 3.3.0.17),
+ python3-dateutil (>= 1.5), python3-doc,
+ python3-kombu (>= 3.0.19), python-kombu-doc (>= 3.0.19),
+ python3-mock (>= 1.0.1), python3-nose,
+ python3-openssl,
+ python3-redis, python3-setuptools, python3-sphinx (>= 1.0.7+dfsg),
+ python3-sqlalchemy, python3-tz, python3-billiard,
+# python3-gevent, python3-mailer, python3-pytyrant,
 X-Python-Version: >= 2.7
 XS-Testsuite: autopkgtest
 Standards-Version: 3.9.5
@@ -36,17 +31,70 @@ Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/celery/trunk/
 Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/celery/trunk/
 XS-Pexip-Upstream: http://ftp.debian.org/debian/ jessie
 
+Package: python-celery-common
+Depends: ${misc:Depends}
+Replaces: python-celery (<< 3.1.12-2)
+Breaks: python-celery (<< 3.1.12-2)
+Architecture: all
+Description: async task/job queue based on message passing
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ The execution units, called tasks, are executed concurrently on one
+ or more worker nodes. Tasks can execute asynchronously (in the
+ background) or synchronously (wait until ready).
+ .
+ Celery is written in Python, but the protocol can be implemented
+ in any language. It can also operate with other languages using
+ webhooks.
+ .
+ The recommended message broker is RabbitMQ, but limited support for Redis,
+ Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
+ ORM) is also available. Celery is easy to integrate with Django, using the
+ python-django-celery package.
+
+
 Package: python-celery
 Architecture: all
 Depends: python-billiard (>= 3.3.0.17),
-         python-cl,
          python-dateutil (>= 1.5),
          python-kombu (>= 3.0.19),
          python-pkg-resources,
          python-tz,
+         python-celery-common (= ${binary:Version}),
          ${misc:Depends},
          ${python:Depends}
 Suggests: python-gevent, python-pytyrant, python-redis, python-sqlalchemy, python-celery-doc
+Description: async task/job queue based on message passing
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ The execution units, called tasks, are executed concurrently on one
+ or more worker nodes. Tasks can execute asynchronously (in the
+ background) or synchronously (wait until ready).
+ .
+ Celery is written in Python, but the protocol can be implemented
+ in any language. It can also operate with other languages using
+ webhooks.
+ .
+ The recommended message broker is RabbitMQ, but limited support for Redis,
+ Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
+ ORM) is also available. Celery is easy to integrate with Django, using the
+ python-django-celery package.
+
+Package: python3-celery
+Architecture: all
+Depends: python3-billiard (>= 3.3.0.17),
+         python3-dateutil (>= 1.5),
+         python3-kombu (>= 3.0.19),
+#         python3-mailer,
+         python3-pkg-resources,
+         python3-tz,
+         ${misc:Depends},
+         ${python3:Depends}
+Suggests: python3-gevent, python3-pytyrant, python3-redis, python3-sqlalchemy, python-celery-doc
 Description: async task/job queue based on message passing
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
