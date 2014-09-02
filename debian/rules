@@ -7,7 +7,7 @@ PREFIXC = debian/python-celery-common
 export PYBUILD_NAME=celery
 
 %:
-	dh $@ --with python2,python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python2,sphinxdoc --buildsystem=pybuild
 
 override_dh_installman:
 	set -e ; \
@@ -28,11 +28,11 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	  rm -f test.db ; \
 	  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
 	done
-	set -e; \
-	for python in $(shell py3versions -r); do \
-	  rm -f test.db ; \
-	  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
-	done
+	#set -e; \
+	#for python in $(shell py3versions -r); do \
+	#  rm -f test.db ; \
+	#  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
+	#done
 endif
 
 override_dh_clean:
