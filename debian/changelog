@@ -2,6 +2,7 @@ celery (3.1.13-2pexip1) unstable; urgency=low
 
   * New upstream release.
   * debian/control, debian/rules: disable Python 3 package
+  * debian/control: Require python-kombu(-doc) >=3.0.21
 
  -- John-Mark Bell <jmb@pexip.com>  Tue, 02 Sep 2014 20:22:28 +0100
 
