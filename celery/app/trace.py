@@ -273,9 +273,9 @@ def build_tracer(name, task, loader=None, hostname=None, store_errors=True,
                                     else:
                                         sigs.append(sig)
                                 for group_ in groups:
-                                    group.apply_async((retval, ))
+                                    group_.apply_async((retval, ))
                                 if sigs:
-                                    group(sigs).apply_async(retval, )
+                                    group(sigs).apply_async((retval, ))
                             else:
                                 signature(callbacks[0], app=app).delay(retval)
                         if publish_result:
@@ -337,7 +337,8 @@ def trace_task(task, uuid, args, kwargs, request={}, **opts):
 
 
 def _trace_task_ret(name, uuid, args, kwargs, request={}, app=None, **opts):
-    return trace_task((app or current_app).tasks[name],
+    app = app or current_app
+    return trace_task(app.tasks[name],
                       uuid, args, kwargs, request, app=app, **opts)
 trace_task_ret = _trace_task_ret
 

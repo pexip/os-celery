@@ -22,18 +22,8 @@ override_dh_auto_build:
 	dh_auto_build
 
 override_dh_auto_test:
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	set -e; \
-	for python in $(shell pyversions -r); do \
-	  rm -f test.db ; \
-	  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
-	done
-	set -e; \
-	for python in $(shell py3versions -r); do \
-	  rm -f test.db ; \
-	  PYTHONPATH=. LC_ALL=C.UTF-8 $$python setup.py test ; \
-	done
-endif
+	PYTHONPATH=. LC_ALL=C.UTF-8 \
+	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test"
 
 override_dh_clean:
 	rm -rf .build

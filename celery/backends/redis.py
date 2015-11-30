@@ -85,7 +85,7 @@ class RedisBackend(KeyValueStoreBackend):
             'port': _get('PORT') or 6379,
             'db': _get('DB') or 0,
             'password': _get('PASSWORD'),
-            'max_connections': max_connections,
+            'max_connections': self.max_connections,
         }
         if url:
             self.connparams = self._params_from_url(url, self.connparams)
@@ -160,13 +160,13 @@ class RedisBackend(KeyValueStoreBackend):
         return self.ensure(self._set, (key, value), **retry_policy)
 
     def _set(self, key, value):
-        pipe = self.client.pipeline()
-        if self.expires:
-            pipe.setex(key, value, self.expires)
-        else:
-            pipe.set(key, value)
-        pipe.publish(key, value)
-        pipe.execute()
+        with self.client.pipeline() as pipe:
+            if self.expires:
+                pipe.setex(key, value, self.expires)
+            else:
+                pipe.set(key, value)
+            pipe.publish(key, value)
+            pipe.execute()
 
     def delete(self, key):
         self.client.delete(key)
@@ -178,8 +178,11 @@ class RedisBackend(KeyValueStoreBackend):
         return self.client.expire(key, value)
 
     def _unpack_chord_result(self, tup, decode,
+                             EXCEPTION_STATES=states.EXCEPTION_STATES,
                              PROPAGATE_STATES=states.PROPAGATE_STATES):
         _, tid, state, retval = decode(tup)
+        if state in EXCEPTION_STATES:
+            retval = self.exception_to_python(retval)
         if state in PROPAGATE_STATES:
             raise ChordError('Dependency {0} raised {1!r}'.format(tid, retval))
         return retval
@@ -202,21 +205,23 @@ class RedisBackend(KeyValueStoreBackend):
         client = self.client
         jkey = self.get_key_for_group(gid, '.j')
         result = self.encode_result(result, state)
-        _, readycount, _ = client.pipeline()                            \
-            .rpush(jkey, self.encode([1, tid, state, result]))          \
-            .llen(jkey)                                                 \
-            .expire(jkey, 86400)                                        \
-            .execute()
+        with client.pipeline() as pipe:
+            _, readycount, _ = pipe                                         \
+                .rpush(jkey, self.encode([1, tid, state, result]))          \
+                .llen(jkey)                                                 \
+                .expire(jkey, 86400)                                        \
+                .execute()
 
         try:
             callback = maybe_signature(request.chord, app=app)
             total = callback['chord_size']
-            if readycount >= total:
+            if readycount == total:
                 decode, unpack = self.decode, self._unpack_chord_result
-                resl, _ = client.pipeline()     \
-                    .lrange(jkey, 0, total)     \
-                    .delete(jkey)               \
-                    .execute()
+                with client.pipeline() as pipe:
+                    resl, _, = pipe                 \
+                        .lrange(jkey, 0, total)     \
+                        .delete(jkey)               \
+                        .execute()
                 try:
                     callback.delay([unpack(tup, decode) for tup in resl])
                 except Exception as exc:
@@ -237,6 +242,16 @@ class RedisBackend(KeyValueStoreBackend):
                 callback.id, exc=ChordError('Join error: {0!r}'.format(exc)),
             )
 
+    def _create_client(self, socket_timeout=None, socket_connect_timeout=None,
+                       **params):
+        return self.redis.Redis(
+            connection_pool=self.ConnectionPool(
+                socket_timeout=socket_timeout and float(socket_timeout),
+                socket_connect_timeout=socket_connect_timeout and float(
+                    socket_connect_timeout),
+                **params),
+        )
+
     @property
     def ConnectionPool(self):
         if self._ConnectionPool is None:
@@ -245,9 +260,7 @@ class RedisBackend(KeyValueStoreBackend):
 
     @cached_property
     def client(self):
-        return self.redis.Redis(
-            connection_pool=self.ConnectionPool(**self.connparams),
-        )
+        return self._create_client(**self.connparams)
 
     def __reduce__(self, args=(), kwargs={}):
         return super(RedisBackend, self).__reduce__(

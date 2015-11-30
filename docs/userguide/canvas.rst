@@ -113,7 +113,7 @@ creates partials:
 
     >>> partial = add.s(2)          # incomplete signature
     >>> partial.delay(4)            # 2 + 4
-    >>> partial.apply_async((4, ))  # same
+    >>> partial.apply_async((4,))  # same
 
 - Any keyword arguments added will be merged with the kwargs in the signature,
   with the new keyword arguments taking precedence::
@@ -133,8 +133,8 @@ You can also clone signatures to create derivates:
     >>> s = add.s(2)
     proj.tasks.add(2)
 
-    >>> s.clone(args=(4, ), kwargs={'debug': True})
-    proj.tasks.add(2, 4, debug=True)
+    >>> s.clone(args=(4,), kwargs={'debug': True})
+    proj.tasks.add(4, 2, debug=True)
 
 Immutability
 ------------
@@ -419,39 +419,6 @@ The linked task will be applied with the result of its parent
 task as the first argument, which in the above case will result
 in ``mul(4, 16)`` since the result is 4.
 
-The results will keep track of what subtasks a task applies,
-and this can be accessed from the result instance::
-
-    >>> res.children
-    [<AsyncResult: 8c350acf-519d-4553-8a53-4ad3a5c5aeb4>]
-
-    >>> res.children[0].get()
-    64
-
-The result instance also has a :meth:`~@AsyncResult.collect` method
-that treats the result as a graph, enabling you to iterate over
-the results::
-
-    >>> list(res.collect())
-    [(<AsyncResult: 7b720856-dc5f-4415-9134-5c89def5664e>, 4),
-     (<AsyncResult: 8c350acf-519d-4553-8a53-4ad3a5c5aeb4>, 64)]
-
-By default :meth:`~@AsyncResult.collect` will raise an
-:exc:`~@IncompleteStream` exception if the graph is not fully
-formed (one of the tasks has not completed yet),
-but you can get an intermediate representation of the graph
-too::
-
-    >>> for result, value in res.collect(intermediate=True)):
-    ....
-
-You can link together as many tasks as you like,
-and signatures can be linked too::
-
-    >>> s = add.s(2, 2)
-    >>> s.link(mul.s(4))
-    >>> s.link(log_result.s())
-
 You can also add *error callbacks* using the ``link_error`` argument::
 
     >>> add.apply_async((2, 2), link_error=log_error.s())
@@ -508,10 +475,50 @@ work your way up the chain to get intermediate results::
     >>> res.parent.parent
     <AsyncResult: eeaad925-6778-4ad1-88c8-b2a63d017933>
 
-
 Chains can also be made using the ``|`` (pipe) operator::
 
     >>> (add.s(2, 2) | mul.s(8) | mul.s(10)).apply_async()
+
+.. note::
+
+    It's not possible to synchronize on groups, so a group chained to another
+    signature is automatically upgraded to a chord:
+
+    .. code-block:: python
+
+        # will actually be a chord when finally evaluated
+        res = (group(add.s(i, i) for i in range(10)) | xsum.s()).delay()
+
+Trails
+~~~~~~
+
+Tasks will keep track of what subtasks a task calls in the
+result backend (unless disabled using :attr:`Task.trail <~@Task.trail>`)
+and this can be accessed from the result instance::
+
+    >>> res.children
+    [<AsyncResult: 8c350acf-519d-4553-8a53-4ad3a5c5aeb4>]
+
+    >>> res.children[0].get()
+    64
+
+The result instance also has a :meth:`~@AsyncResult.collect` method
+that treats the result as a graph, enabling you to iterate over
+the results::
+
+    >>> list(res.collect())
+    [(<AsyncResult: 7b720856-dc5f-4415-9134-5c89def5664e>, 4),
+     (<AsyncResult: 8c350acf-519d-4553-8a53-4ad3a5c5aeb4>, 64)]
+
+By default :meth:`~@AsyncResult.collect` will raise an
+:exc:`~@IncompleteStream` exception if the graph is not fully
+formed (one of the tasks has not completed yet),
+but you can get an intermediate representation of the graph
+too::
+
+    >>> for result, value in res.collect(intermediate=True)):
+    ....
+
 
 Graphs
 ~~~~~~
@@ -742,7 +749,7 @@ to the :exc:`~@ChordError` exception:
       File "*/celery/result.py", line 120, in get
         interval=interval)
       File "*/celery/backends/amqp.py", line 150, in wait_for
-        raise self.exception_to_python(meta['result'])
+        raise meta['result']
     celery.exceptions.ChordError: Dependency 97de6f3f-ea67-4517-a21c-d867c61fcb47
         raised ValueError('something something',)
 

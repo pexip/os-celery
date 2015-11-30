@@ -1,3 +1,74 @@
+celery (3.1.19-2) unstable; urgency=medium
+
+  * Fix debian/copyright. Closes: #803117.
+
+ -- Brian May <bam@debian.org>  Mon, 30 Nov 2015 12:55:10 +1100
+
+celery (3.1.19-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add 0007-Update-license.patch from upstream. Closes: #803117.
+
+ -- Brian May <bam@debian.org>  Thu, 19 Nov 2015 10:33:01 +1100
+
+celery (3.1.18-3) unstable; urgency=medium
+
+  * Add 0007-Improve-the-magic-module-check-Closes-801640.patch from upstream
+    to fix magic module check (Closes: #801640).
+  * Add 0008-ci-Tests-passing-on-Python-3.5.patch from upstream to make tests
+    pass on Python3.5.
+  * Update Vcs fields for git migration.
+  * Initialize git-dpm.
+  * Bump debhelper compatibility and version to 9.
+
+ -- Michael Fladischer <fladi@debian.org>  Fri, 16 Oct 2015 18:47:46 +0200
+
+celery (3.1.18-2) unstable; urgency=medium
+
+  * Add fix_test_typos.patch to fix misspelled method names in unit
+    tests (Closes: #795393).
+
+ -- Michael Fladischer <fladi@debian.org>  Thu, 13 Aug 2015 21:07:36 +0200
+
+celery (3.1.18-1) unstable; urgency=medium
+
+  * New upstream release (Closes: #762963).
+  * Drop fix-tests patch since the certificate expiration test is now
+    skipped by upstream.
+  * Refresh patches.
+  * Bump dependencies on python(3)-kombu to >= 3.0.24.
+  * Source /lib/lsb/init-functions in all init scripts.
+  * Drop XS-Testsuite as dpkg can now do autodetection.
+  * Add X-Python3-Version for versions => 3.3.
+  * Change my email address to fladi@debian.org.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 20 May 2015 16:01:03 +0200
+
+celery (3.1.13-3) unstable; urgency=low
+
+  * Drop unnecessary versioned dependencies for packages:
+    + python-billiard
+    + python3-billiard
+    + python3-dateutil
+    + python3-kombu
+  * Remove python3-sphinx from Build-Depends as it is never used.
+  * Rename licenses in d/copyright to conform to version 1.0 machine-
+    readable names.
+  * Update years and names/mail-adresses in d/copyright.
+  * Move manpages to python-celery-common package.
+  * Move supervisor configuration example to python-celery-common
+    package.
+  * Install README.rst as documentation in python3-celery package.
+  * Bump Standards-Version to 3.9.6.
+  * Specify unique descriptions for each package.
+  * Add DEP3 header to fix_tests patch.
+  * Remove unused license section for BSD-3-clause after pool.py has
+    been dropped by upstream.
+  * Do not install manpages for scripts that are no longer present.
+  * Line-wrap fields in d/control.
+
+ -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 21 Oct 2014 15:59:31 +0200
+
 celery (3.1.13-2) unstable; urgency=low
 
   [Brian May]

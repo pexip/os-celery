@@ -3,4 +3,5 @@ lsb-init.patch
 intersphinx.patch
 disable_unstable_tests.patch
 privacy.patch
-fix_tests
+0006-ci-Tests-passing-on-Python-3.5.patch
+0007-Update-license.patch

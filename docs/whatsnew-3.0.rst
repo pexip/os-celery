@@ -117,7 +117,7 @@ and ``amqplib``.
 Hopefully this can be extended to include additional broker transports
 in the future.
 
-For increased reliability the :setting:`CELERY_FORCE_EXECV` setting is enabled
+For increased reliability the :setting:`CELERYD_FORCE_EXECV` setting is enabled
 by default if the eventloop is not used.
 
 New ``celery`` umbrella command
@@ -656,7 +656,7 @@ decorator executes inline like before, however for custom apps the @task
 decorator now returns a special PromiseProxy object that is only evaluated
 on access.
 
-All promises will be evaluated when `app.finalize` is called, or implicitly
+All promises will be evaluated when :meth:`@finalize` is called, or implicitly
 when the task registry is first used.
 
 
@@ -828,7 +828,7 @@ In Other News
         i = celery.control.inspect(connection=Connection('redis://'))
         i.active_queues()
 
-- :setting:`CELERY_FORCE_EXECV` is now enabled by default.
+- :setting:`CELERYD_FORCE_EXECV` is now enabled by default.
 
     If the old behavior is wanted the setting can be set to False,
     or the new :option:`--no-execv` to :program:`celery worker`.

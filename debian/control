@@ -2,39 +2,62 @@ Source: celery
 Section: python
 Priority: optional
 Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Uploaders: Michael Fladischer <FladischerMichael@fladi.at>,
- Brian May <bam@debian.org>
-Build-Depends: debhelper (>= 8.1.0~), dh-python,
- docbook-to-man, dvipng, locales, texlive-latex-base, texlive-latex-extra,
- python-all (>= 2.7), python-billiard (>= 3.3.0.17),
- python-dateutil (>= 1.5), python-doc,
- python-kombu (>= 3.0.19), python-kombu-doc (>= 3.0.19),
- python-memcache, python-mock (>= 1.0.1), python-nose,
- python-openssl, python-pyparsing,
- python-redis, python-setuptools, python-sphinx (>= 1.0.7+dfsg),
- python-sqlalchemy, python-tz, python-unittest2, python-billiard,
- python-gevent, python-mailer, python-pytyrant,
- python3-all, python3-billiard (>= 3.3.0.17),
- python3-dateutil (>= 1.5), python3-doc,
- python3-kombu (>= 3.0.19), python-kombu-doc (>= 3.0.19),
- python3-memcache, python3-mock (>= 1.0.1), python3-nose,
- python3-openssl, python3-pyparsing,
- python3-redis, python3-setuptools, python3-sphinx (>= 1.0.7+dfsg),
- python3-sqlalchemy, python3-tz, python3-billiard,
-# python3-gevent, python3-mailer, python3-pytyrant,
+Uploaders: Michael Fladischer <fladi@debian.org>,
+           Brian May <bam@debian.org>
+Build-Depends: debhelper (>= 9),
+               dh-python,
+               docbook-to-man,
+               dvipng,
+               locales,
+               python-all (>= 2.7),
+               python-billiard,
+               python-dateutil (>= 1.5),
+               python-doc,
+               python-gevent,
+               python-kombu (>= 3.0.29),
+               python-kombu-doc (>= 3.0.24),
+               python-mailer,
+               python-memcache,
+               python-mock (>= 1.0.1),
+               python-nose,
+               python-openssl,
+               python-pyparsing,
+               python-pytyrant,
+               python-redis,
+               python-setuptools,
+               python-sphinx (>= 1.0.7+dfsg),
+               python-sqlalchemy,
+               python-tz,
+               python-unittest2,
+               python3-all,
+               python3-billiard,
+               python3-dateutil,
+               python3-doc,
+               python3-kombu (>= 3.0.29),
+               python3-memcache,
+               python3-mock (>= 1.0.1),
+               python3-nose,
+               python3-openssl,
+               python3-pyparsing,
+               python3-redis,
+               python3-setuptools,
+               python3-sqlalchemy,
+               python3-tz,
+               texlive-latex-base,
+               texlive-latex-extra
 X-Python-Version: >= 2.7
-XS-Testsuite: autopkgtest
-Standards-Version: 3.9.5
+X-Python3-Version: >= 3.3
+Standards-Version: 3.9.6
 Homepage: http://www.celeryproject.org/
-Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/celery/trunk/
-Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/celery/trunk/
+Vcs-Git: git://anonscm.debian.org/python-modules/packages/celery.git
+Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/celery.git
 
 Package: python-celery-common
 Depends: ${misc:Depends}
 Replaces: python-celery (<< 3.1.12-2)
 Breaks: python-celery (<< 3.1.12-2)
 Architecture: all
-Description: async task/job queue based on message passing
+Description: async task/job queue based on message passing (common files)
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
  but supports scheduling as well.
@@ -51,23 +74,28 @@ Description: async task/job queue based on message passing
  Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
  ORM) is also available. Celery is easy to integrate with Django, using the
  python-django-celery package.
-
+ .
+ This package contains the common files of the library.
 
 Package: python-celery
 Architecture: all
-Depends: python-billiard (>= 3.3.0.17),
+Depends: python-billiard,
+         python-celery-common (= ${binary:Version}),
          python-dateutil (>= 1.5),
-         python-kombu (>= 3.0.19),
+         python-kombu (>= 3.0.24),
          python-mailer,
          python-memcache,
          python-pkg-resources,
          python-pyparsing,
          python-tz,
-         python-celery-common (= ${binary:Version}),
          ${misc:Depends},
          ${python:Depends}
-Suggests: python-gevent, python-pytyrant, python-redis, python-sqlalchemy, python-celery-doc
-Description: async task/job queue based on message passing
+Suggests: python-celery-doc,
+          python-gevent,
+          python-pytyrant,
+          python-redis,
+          python-sqlalchemy
+Description: async task/job queue based on message passing (Python2 version)
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
  but supports scheduling as well.
@@ -84,21 +112,24 @@ Description: async task/job queue based on message passing
  Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
  ORM) is also available. Celery is easy to integrate with Django, using the
  python-django-celery package.
+ .
+ This package contains the Python 2 version of the library.
 
 Package: python3-celery
 Architecture: all
-Depends: python3-billiard (>= 3.3.0.17),
-         python3-dateutil (>= 1.5),
-         python3-kombu (>= 3.0.19),
-#         python3-mailer,
+Depends: python3-billiard,
+         python3-dateutil,
+         python3-kombu (>= 3.0.24),
          python3-memcache,
          python3-pkg-resources,
          python3-pyparsing,
          python3-tz,
          ${misc:Depends},
          ${python3:Depends}
-Suggests: python3-gevent, python3-pytyrant, python3-redis, python3-sqlalchemy, python-celery-doc
-Description: async task/job queue based on message passing
+Suggests: python-celery-doc,
+          python3-redis,
+          python3-sqlalchemy
+Description: async task/job queue based on message passing (Python3 version)
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
  but supports scheduling as well.
@@ -115,11 +146,15 @@ Description: async task/job queue based on message passing
  Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
  ORM) is also available. Celery is easy to integrate with Django, using the
  python-django-celery package.
+ .
+ This package contains the Python 3 version of the library.
 
 Package: python-celery-doc
 Section: doc
 Architecture: all
-Depends: libjs-jquery, ${misc:Depends}, ${sphinxdoc:Depends}
+Depends: libjs-jquery,
+         ${misc:Depends},
+         ${sphinxdoc:Depends}
 Description: async task/job queue based on message passing (Documentation)
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
@@ -142,7 +177,9 @@ Description: async task/job queue based on message passing (Documentation)
 
 Package: celeryd
 Architecture: all
-Depends: python-celery (= ${binary:Version}), ${misc:Depends}, adduser
+Depends: adduser,
+         python-celery (= ${binary:Version}),
+         ${misc:Depends}
 Breaks: python-celery (<< 3.0.24-1)
 Suggests: rabbitmq-server
 Description: async task/job queue based on message passing (daemons)

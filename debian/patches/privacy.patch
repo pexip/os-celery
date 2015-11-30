@@ -1,13 +1,24 @@
-Description: Remove external assets from documentation.
+From 24f878e9b31b88f9b27d15b4075f0d5b6bbaaf9e Mon Sep 17 00:00:00 2001
+From: Michael Fladischer <fladi@debian.org>
+Date: Thu, 8 Oct 2015 08:37:05 -0700
+Subject: Remove external assets from documentation.
+
  Upstream incldues a PayPal donation form in it's sphinx templates for which the
  submit button used an external image and which was replaced by a simple
  <button/> element. Also a gittip button is loaded inside an <iframe/> which is
  removed. The logo image was loaded from the project website and is replaced
  with the local image file.
-Author: Michael Fladischer <FladischerMichael@fladi.at>
 Last-Update: 2014-02-11
 Forwarded: not-needed
 
+Patch-Name: privacy.patch
+---
+ docs/.templates/sidebarintro.html | 8 ++------
+ docs/.templates/sidebarlogo.html  | 8 ++------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/docs/.templates/sidebarintro.html b/docs/.templates/sidebarintro.html
+index 16cca54..1fd55b3 100644
 --- a/docs/.templates/sidebarintro.html
 +++ b/docs/.templates/sidebarintro.html
 @@ -1,5 +1,5 @@
@@ -28,6 +39,8 @@ Forwarded: not-needed
 -            width="48pt" height="22pt"> </iframe>
 +    <button onclick="$('#paypal_donate').submit();" alt="PayPal">PayPal</button>
  </div>
+diff --git a/docs/.templates/sidebarlogo.html b/docs/.templates/sidebarlogo.html
+index 16cca54..1fd55b3 100644
 --- a/docs/.templates/sidebarlogo.html
 +++ b/docs/.templates/sidebarlogo.html
 @@ -1,5 +1,5 @@

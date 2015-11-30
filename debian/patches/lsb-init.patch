@@ -1,11 +1,22 @@
-Description: LSB compliant headers, status actions and ENABLED variable
+From 0e7ca21f39a76cc231dbc37e9aaeb10d3cc6e428 Mon Sep 17 00:00:00 2001
+From: Michael Fladischer <fladi@debian.org>
+Date: Thu, 8 Oct 2015 08:37:02 -0700
+Subject: LSB compliant headers, status actions and ENABLED variable
+
  Upstream ships it's own init scripts but they lack some LSB header and
  the (optional) "status" action. This patch fixes this and also adds a
  variable called ENABLED in /etc/default/celeryd.
-Author: Michael Fladischer <FladischerMichael@fladi.at>
 Last-Update: 2013-09-03
 Forwarded: no
 
+Patch-Name: lsb-init.patch
+---
+ extra/generic-init.d/celerybeat | 12 ++++++++++++
+ extra/generic-init.d/celeryd    | 11 +++++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/extra/generic-init.d/celerybeat b/extra/generic-init.d/celerybeat
+index fb31ca2..08bfbe4 100755
 --- a/extra/generic-init.d/celerybeat
 +++ b/extra/generic-init.d/celerybeat
 @@ -15,11 +15,15 @@
@@ -21,10 +32,10 @@ Forwarded: no
 +
 +. /lib/lsb/init-functions
 +
- VERSION=10.0
+ VERSION=10.1
  echo "celery init v${VERSION}."
  
-@@ -85,6 +89,7 @@
+@@ -85,6 +89,7 @@ _config_sanity() {
  
  scripts=""
  
@@ -32,7 +43,7 @@ Forwarded: no
  if test -f /etc/default/celeryd; then
      scripts="/etc/default/celeryd"
      _config_sanity /etc/default/celeryd
-@@ -106,6 +111,13 @@
+@@ -106,6 +111,13 @@ DEFAULT_PID_FILE="/var/run/celery/beat.pid"
  DEFAULT_LOG_FILE="/var/log/celery/beat.log"
  DEFAULT_LOG_LEVEL="INFO"
  DEFAULT_CELERYBEAT="$CELERY_BIN beat"
@@ -46,37 +57,8 @@ Forwarded: no
  
  CELERYBEAT=${CELERYBEAT:-$DEFAULT_CELERYBEAT}
  CELERYBEAT_LOG_LEVEL=${CELERYBEAT_LOG_LEVEL:-${CELERYBEAT_LOGLEVEL:-$DEFAULT_LOG_LEVEL}}
-@@ -246,7 +258,16 @@
-                 --pidfile="$CELERYBEAT_PID_FILE"
- }
- 
--
-+status () {
-+    pid=$(cat "$CELERYBEAT_PID_FILE")
-+    kill -0 $pid 1>/dev/null 2>&1
-+    if [ $? -eq 0 ]; then
-+        echo "celerybeat running"
-+    else
-+        echo "celerybeat not running"
-+        exit 1
-+    fi
-+}
- 
- case "$1" in
-     start)
-@@ -276,8 +297,11 @@
-         check_dev_null
-         check_paths
-     ;;
-+    status)
-+        status
-+        ;;
-     *)
--        echo "Usage: /etc/init.d/${SCRIPT_NAME} {start|stop|restart|create-paths}"
-+        echo "Usage: /etc/init.d/${SCRIPT_NAME} {start|stop|restart|create-paths|status}"
-         exit 64  # EX_USAGE
-     ;;
- esac
+diff --git a/extra/generic-init.d/celeryd b/extra/generic-init.d/celeryd
+index 8cef473..509e639 100755
 --- a/extra/generic-init.d/celeryd
 +++ b/extra/generic-init.d/celeryd
 @@ -16,6 +16,7 @@
@@ -94,10 +76,10 @@ Forwarded: no
 +
 +. /lib/lsb/init-functions
 +
- VERSION=10.0
+ VERSION=10.1
  echo "celery init v${VERSION}."
  if [ $(id -u) -ne 0 ]; then
-@@ -52,6 +56,7 @@
+@@ -52,6 +56,7 @@ DEFAULT_LOG_FILE="/var/log/celery/%n.log"
  DEFAULT_LOG_LEVEL="INFO"
  DEFAULT_NODES="celery"
  DEFAULT_CELERYD="-m celery worker --detach"
@@ -105,7 +87,7 @@ Forwarded: no
  
  CELERY_DEFAULTS=${CELERY_DEFAULTS:-"/etc/default/${SCRIPT_NAME}"}
  
-@@ -104,6 +109,12 @@
+@@ -104,6 +109,12 @@ if [ -f "$CELERY_DEFAULTS" ]; then
      . "$CELERY_DEFAULTS"
  fi
  

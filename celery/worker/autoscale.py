@@ -81,7 +81,7 @@ class Autoscaler(bgThread):
             self.maybe_scale()
         sleep(1.0)
 
-    def _maybe_scale(self):
+    def _maybe_scale(self, req=None):
         procs = self.processes
         cur = min(self.qty, self.max_concurrency)
         if cur > procs:
@@ -91,8 +91,8 @@ class Autoscaler(bgThread):
             self.scale_down((procs - cur) - self.min_concurrency)
             return True
 
-    def maybe_scale(self):
-        if self._maybe_scale():
+    def maybe_scale(self, req=None):
+        if self._maybe_scale(req):
             self.pool.maintain_pool()
 
     def update(self, max=None, min=None):
