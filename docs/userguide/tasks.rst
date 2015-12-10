@@ -45,7 +45,7 @@ Basics
 ======
 
 You can easily create a task from any callable by using
-the :meth:`~@Celery.task` decorator:
+the :meth:`~@task` decorator:
 
 .. code-block:: python
 
@@ -327,8 +327,34 @@ for which documentation can be found in the :mod:`logging`
 module.
 
 You can also use :func:`print`, as anything written to standard
-out/-err will be redirected to logging system (you can disable this,
+out/-err will be redirected to the logging system (you can disable this,
 see :setting:`CELERY_REDIRECT_STDOUTS`).
+
+.. note::
+
+    The worker will not update the redirection if you create a logger instance
+    somewhere in your task or task module.
+
+    If you want to redirect ``sys.stdout`` and ``sys.stderr`` to a custom
+    logger you have to enable this manually, for example:
+
+    .. code-block:: python
+
+        import sys
+
+        logger = get_task_logger(__name__)
+
+        @app.task(bind=True)
+        def add(self, x, y):
+            old_outs = sys.stdout, sys.stderr
+            rlevel = self.app.conf.CELERY_REDIRECT_STDOUTS_LEVEL
+            try:
+                self.app.log.redirect_stdouts_to_logger(logger, rlevel)
+                print('Adding {0} + {1}'.format(x, y))
+                return x + y
+            finally:
+                sys.stdout, sys.stderr = old_outs
+
 
 .. _task-retry:
 
@@ -497,6 +523,16 @@ General
 
         Logged with severity ``ERROR``, with traceback included.
 
+.. attribute:: Task.trail
+
+    By default the task will keep track of subtasks called
+    (``task.request.children``), and this will be stored with the final result
+    in the result backend, available to the client via
+    ``AsyncResult.children``.
+
+    This list of task can grow quite big for tasks starting many subtasks,
+    and you can set this attribute to False to disable it.
+
 .. attribute:: Task.default_retry_delay
 
     Default time in seconds before a retry of the task
@@ -657,48 +693,31 @@ Result Backends
 If you want to keep track of tasks or need the return values, then Celery
 must store or send the states somewhere so that they can be retrieved later.
 There are several built-in result backends to choose from: SQLAlchemy/Django ORM,
-Memcached, RabbitMQ (amqp), MongoDB, and Redis -- or you can define your own.
+Memcached, RabbitMQ/QPid (rpc), MongoDB, and Redis -- or you can define your own.
 
 No backend works well for every use case.
 You should read about the strengths and weaknesses of each backend, and choose
 the most appropriate for your needs.
 
-
 .. seealso::
 
     :ref:`conf-result-backend`
 
-RabbitMQ Result Backend
-~~~~~~~~~~~~~~~~~~~~~~~
+RPC Result Backend (RabbitMQ/QPid)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The RabbitMQ result backend (amqp) is special as it does not actually *store*
+The RPC result backend (`rpc://`) is special as it does not actually *store*
 the states, but rather sends them as messages.  This is an important difference as it
-means that a result *can only be retrieved once*; If you have two processes
-waiting for the same result, one of the processes will never receive the
-result!
+means that a result *can only be retrieved once*, and *only by the client
+that initiated the task*. Two different processes can not wait for the same result.
 
 Even with that limitation, it is an excellent choice if you need to receive
 state changes in real-time.  Using messaging means the client does not have to
 poll for new states.
 
-There are several other pitfalls you should be aware of when using the
-RabbitMQ result backend:
-
-* Every new task creates a new queue on the server, with thousands of tasks
-  the broker may be overloaded with queues and this will affect performance in
-  negative ways. If you're using RabbitMQ then each queue will be a separate
-  Erlang process, so if you're planning to keep many results simultaneously you
-  may have to increase the Erlang process limit, and the maximum number of file
-  descriptors your OS allows.
-
-* Old results will be cleaned automatically, based on the
-  :setting:`CELERY_TASK_RESULT_EXPIRES` setting.  By default this is set to
-  expire after 1 day: if you have a very busy cluster you should lower
-  this value.
-
-For a list of options supported by the RabbitMQ result backend, please see
-:ref:`conf-amqp-result-backend`.
-
+The messages are transient (non-persistent) by default, so the results will
+disappear if the broker restarts. You can configure the result backend to send
+persistent messages using the :setting:`CELERY_RESULT_PERSISTENT` setting.
 
 Database Result Backend
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -717,7 +736,6 @@ limitations.
   means the transaction will not see changes by other transactions until the
   transaction is committed.  It is recommended that you change to the
   `READ-COMMITTED` isolation level.
-
 
 .. _task-builtin-states:
 
@@ -802,8 +820,9 @@ Use :meth:`~@Task.update_state` to update a task's state::
     @app.task(bind=True)
     def upload_files(self, filenames):
         for i, file in enumerate(filenames):
-            self.update_state(state='PROGRESS',
-                meta={'current': i, 'total': len(filenames)})
+            if not self.request.called_directly:
+                self.update_state(state='PROGRESS',
+                    meta={'current': i, 'total': len(filenames)})
 
 
 Here I created the state `"PROGRESS"`, which tells any application
@@ -911,7 +930,8 @@ Example that stores results manually:
     @app.task(bind=True)
     def get_tweets(self, user):
         timeline = twitter.get_timeline(user)
-        self.update_state(state=states.SUCCESS, meta=timeline)
+        if not self.request.called_directly:
+            self.update_state(state=states.SUCCESS, meta=timeline)
         raise Ignore()
 
 .. _task-semipred-reject:
@@ -1087,7 +1107,7 @@ base class for new task types.
         abstract = True
 
         def after_return(self, *args, **kwargs):
-            print('Task returned: {0!r}'.format(self.request)
+            print('Task returned: {0!r}'.format(self.request))
 
 
     @app.task(base=DebugTask)
@@ -1153,9 +1173,6 @@ Handlers
     :param kwargs: Original keyword arguments for the executed task.
 
     The return value of this handler is ignored.
-
-on_retry
-~~~~~~~~
 
 .. _task-how-they-work:
 
@@ -1289,7 +1306,7 @@ Make your design asynchronous instead, for example by using *callbacks*.
 
     def update_page_info(url):
         # fetch_page -> parse_page -> store_page
-        chain = fetch_page.s() | parse_page.s() | store_page_info.s(url)
+        chain = fetch_page.s(url) | parse_page.s() | store_page_info.s(url)
         chain()
 
     @app.task()
@@ -1471,12 +1488,26 @@ depending on state from the current transaction*:
             transaction.commit()
             expand_abbreviations.delay(article.pk)
 
+.. note::
+    Django 1.6 (and later) now enables autocommit mode by default,
+    and ``commit_on_success``/``commit_manually`` are deprecated.
+
+    This means each SQL query is wrapped and executed in individual
+    transactions, making it less likely to experience the
+    problem described above.
+
+    However, enabling ``ATOMIC_REQUESTS`` on the database
+    connection will bring back the transaction-per-request model and the
+    race condition along with it.  In this case, the simple solution is
+    using the ``@transaction.non_atomic_requests`` decorator to go back
+    to autocommit for that view only.
+
 .. _task-example:
 
 Example
 =======
 
-Let's take a real wold example; A blog where comments posted needs to be
+Let's take a real world example; A blog where comments posted needs to be
 filtered for spam.  When the comment is created, the spam filter runs in the
 background, so the user doesn't have to wait for it to finish.
 

@@ -1,0 +1,11 @@
+# see git-dpm(1) from git-dpm package
+3efb36ba8df1489027ab2226743b978548de3ed7
+3efb36ba8df1489027ab2226743b978548de3ed7
+ecfab0e5f18c81b19617e93999463c55955d714a
+ecfab0e5f18c81b19617e93999463c55955d714a
+celery_3.1.19.orig.tar.gz
+06465daff8e316cd212a01ea87125de8afc7a4d1
+1302241
+debianTag="debian/%e%v"
+patchedTag="patched/%e%v"
+upstreamTag="upstream/%e%u"

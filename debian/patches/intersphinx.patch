@@ -1,15 +1,25 @@
-Description: use local objects.inv where possible
- Upstream uses intersphinx mappings that fetch the objects.inv for python, 
- kombu and django-celery by HTTP from a remote host. Using the local 
- objects.inv from python and kombu enables the package to build without 
+From 85c83417637abeb0000bae48d84f63ff28692a5b Mon Sep 17 00:00:00 2001
+From: Michael Fladischer <fladi@debian.org>
+Date: Thu, 8 Oct 2015 08:37:03 -0700
+Subject: use local objects.inv where possible
+
+ Upstream uses intersphinx mappings that fetch the objects.inv for python,
+ kombu and django-celery by HTTP from a remote host. Using the local
+ objects.inv from python and kombu enables the package to build without
  network connection.
-Author: Michael Fladischer <FladischerMichael@fladi.at>
 Forwarded: not-needed
 Last-Update: 2011-12-27
 
+Patch-Name: intersphinx.patch
+---
+ docs/conf.py | 24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/docs/conf.py b/docs/conf.py
+index 815819e..c7f62f7 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
-@@ -75,13 +75,23 @@
+@@ -75,13 +75,23 @@ unused_docs = [
  # If true, '()' will be appended to :func: etc. cross-reference text.
  add_function_parentheses = True
  
