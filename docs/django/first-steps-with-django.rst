@@ -62,15 +62,15 @@ for the :program:`celery` command-line program:
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proj.settings')
 
-You don't need this line, but it saves you from always passing in the
-settings module to the celery program.  It must always come before
-creating the app instances, which is what we do next:
+Specifying the settings here means the ``celery`` command line program
+will know where your Django project is.  This statement must always appear before
+the app instance is created, which is what we do next:
 
 .. code-block:: python
 
     app = Celery('proj')
 
-This is our instance of the library, you can have many instances
+This is your instance of the library, you can have many instances
 but there's probably no reason for that when using Django.
 
 We also add the Django settings module as a configuration source
@@ -136,10 +136,14 @@ concrete app instance:
 Using the Django ORM/Cache as a result backend.
 -----------------------------------------------
 
-The ``django-celery`` library defines result backends that
-uses the Django ORM and Django Cache frameworks.
+If you want to store task results in the Django database then
+you still need to install the ``django-celery`` library for that
+(alternatively you can use the SQLAlchemy result backend).
 
-To use this with your project you need to follow these four steps:
+The ``django-celery`` library implements result backends using
+the Django ORM and the Django Cache frameworks.
+
+To use this extension in your project you need to follow these four steps:
 
 1. Install the ``django-celery`` library:
 

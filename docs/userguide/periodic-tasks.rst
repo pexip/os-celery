@@ -100,6 +100,9 @@ Example: Run the `tasks.add` task every 30 seconds.
     please see :ref:`celerytut-configuration`.  You can either
     set these options on your app directly or you can keep
     a separate module for configuration.
+    
+    If you want to use a single item tuple for `args`, don't forget
+    that the constructor is a comma and not a pair of parentheses.
 
 Using a :class:`~datetime.timedelta` for the schedule means the task will
 be sent in 30 second intervals (the first task will be sent 30 seconds
@@ -220,20 +223,20 @@ The syntax of these crontab expressions are very flexible.  Some examples:
 | ``crontab(minute=0, hour='*/3,8-17')``  | Execute every hour divisible by 3, and     |
 |                                         | every hour during office hours (8am-5pm).  |
 +-----------------------------------------+--------------------------------------------+
-| ``crontab(day_of_month='2')``           | Execute on the second day of every month.  |
+| ``crontab(0, 0, day_of_month='2')``     | Execute on the second day of every month.  |
 |                                         |                                            |
 +-----------------------------------------+--------------------------------------------+
-| ``crontab(day_of_month='2-30/3')``      | Execute on every even numbered day.        |
-|                                         |                                            |
+| ``crontab(0, 0,``                       | Execute on every even numbered day.        |
+|         ``day_of_month='2-30/3')``      |                                            |
 +-----------------------------------------+--------------------------------------------+
-| ``crontab(day_of_month='1-7,15-21')``   | Execute on the first and third weeks of    |
-|                                         | the month.                                 |
+| ``crontab(0, 0,``                       | Execute on the first and third weeks of    |
+|         ``day_of_month='1-7,15-21')``   | the month.                                 |
 +-----------------------------------------+--------------------------------------------+
-| ``crontab(day_of_month='11',``          | Execute on 11th of May every year.         |
-|         ``month_of_year='5')``          |                                            |
+| ``crontab(0, 0, day_of_month='11',``    | Execute on 11th of May every year.         |
+|          ``month_of_year='5')``         |                                            |
 +-----------------------------------------+--------------------------------------------+
-| ``crontab(month_of_year='*/3')``        | Execute on the first month of every        |
-|                                         | quarter.                                   |
+| ``crontab(0, 0,``                       | Execute on the first month of every        |
+|         ``month_of_year='*/3')``        | quarter.                                   |
 +-----------------------------------------+--------------------------------------------+
 
 See :class:`celery.schedules.crontab` for more documentation.

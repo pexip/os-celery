@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: celery
-Version: 3.1.13
+Version: 3.1.19
 Summary: Distributed Task Queue
 Home-page: http://celeryproject.org
 Author: Ask Solem
@@ -12,7 +12,7 @@ Description: =================================
         
         .. image:: http://cloud.github.com/downloads/celery/celery/celery_128.png
         
-        :Version: 3.1.13 (Cipater)
+        :Version: 3.1.19 (Cipater)
         :Web: http://celeryproject.org/
         :Download: http://pypi.python.org/pypi/celery/
         :Source: http://github.com/celery/celery/
@@ -191,7 +191,7 @@ Description: =================================
         database connections at ``fork``.
         
         .. _`Django`: http://djangoproject.com/
-        .. _`Pylons`: http://pylonshq.com/
+        .. _`Pylons`: http://pylonsproject.org/
         .. _`Flask`: http://flask.pocoo.org/
         .. _`web2py`: http://web2py.com/
         .. _`Bottle`: http://bottlepy.org/

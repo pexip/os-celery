@@ -144,12 +144,11 @@ This is an example error callback:
 
 .. code-block:: python
 
-    @app.task
-    def error_handler(uuid):
-        result = AsyncResult(uuid)
-        exc = result.get(propagate=False)
+    @app.task(bind=True)
+    def error_handler(self, uuid):
+        result = self.app.AsyncResult(uuid)
         print('Task {0} raised exception: {1!r}\n{2!r}'.format(
-              uuid, exc, result.traceback))
+              uuid, result.result, result.traceback))
 
 it can be added to the task using the ``link_error`` execution
 option:
@@ -442,7 +441,7 @@ Though this particular example is much better expressed as a group:
     >>> from celery import group
 
     >>> numbers = [(2, 2), (4, 4), (8, 8), (16, 16)]
-    >>> res = group(add.subtask(n) for i in numbers).apply_async()
+    >>> res = group(add.s(i) for i in numbers).apply_async()
 
     >>> res.get()
     [4, 8, 16, 32]

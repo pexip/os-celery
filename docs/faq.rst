@@ -99,7 +99,7 @@ many performance and stability improvements.  It is an eventual goal
 that these improvements will be merged back into Python one day.
 
 It is also used for compatibility with older Python versions
-that doesn't come with the multiprocessing module.
+that don't come with the multiprocessing module.
 
 .. _`billiard`: http://pypi.python.org/pypi/billiard
 
@@ -288,9 +288,16 @@ most systems), it usually contains a message describing the reason.
 Does it work on FreeBSD?
 ------------------------
 
-**Answer:** The prefork pool requires a working POSIX semaphore
-implementation which isn't enabled in FreeBSD by default. You have to enable
-POSIX semaphores in the kernel and manually recompile multiprocessing.
+**Answer:** Depends
+
+When using the RabbitMQ (AMQP) and Redis transports it should work
+out of the box.
+
+For other transports the compatibility prefork pool is
+used which requires a working POSIX semaphore implementation,
+this is enabled in FreeBSD by default since FreeBSD 8.x.
+For older version of FreeBSD, you have to enable
+POSIX semaphores in the kernel and manually recompile billiard.
 
 Luckily, Viktor Petersson has written a tutorial to get you started with
 Celery on FreeBSD here:
@@ -432,7 +439,7 @@ using the tasks current result backend.
 
 If you need to specify a custom result backend, or you want to use
 the current application's default backend you can use
-:class:`@Celery.AsyncResult`:
+:class:`@AsyncResult`:
 
     >>> result = app.AsyncResult(task_id)
     >>> result.get()
@@ -594,7 +601,7 @@ Why do workers delete tasks from the queue if they are unable to process them?
 **Answer**:
 
 The worker rejects unknown tasks, messages with encoding errors and messages
-that doesn't contain the proper fields (as per the task message protocol).
+that don't contain the proper fields (as per the task message protocol).
 
 If it did not reject them they could be redelivered again and again,
 causing a loop.
@@ -607,12 +614,11 @@ queue for exchange, so that rejected messages is moved there.
 Can I call a task by name?
 -----------------------------
 
-**Answer**: Yes. Use :func:`celery.execute.send_task`.
+**Answer**: Yes. Use :meth:`@send_task`.
 You can also call a task by name from any language
 that has an AMQP client.
 
-    >>> from celery.execute import send_task
-    >>> send_task("tasks.add", args=[2, 2], kwargs={})
+    >>> app.send_task('tasks.add', args=[2, 2], kwargs={})
     <AsyncResult: 373550e8-b9a0-4666-bc61-ace01fa4f91d>
 
 .. _faq-get-current-task-id:
@@ -768,7 +774,7 @@ to use both.
 
 `Task.retry` is used to retry tasks, notably for expected errors that
 is catchable with the `try:` block. The AMQP transaction is not used
-for these errors: **if the task raises an exception it is still acknowledged!**.
+for these errors: **if the task raises an exception it is still acknowledged!**
 
 The `acks_late` setting would be used when you need the task to be
 executed again if the worker (for some reason) crashes mid-execution.
@@ -794,7 +800,7 @@ scenario of course, but you can probably imagine something far more
 sinister. So for ease of programming we have less reliability;
 It's a good default, users who require it and know what they
 are doing can still enable acks_late (and in the future hopefully
-use manual acknowledgement)
+use manual acknowledgement).
 
 In addition `Task.retry` has features not available in AMQP
 transactions: delay between retries, max retries, etc.
@@ -835,9 +841,23 @@ executing jobs and shut down as soon as possible. No tasks should be lost.
 
 You should never stop :mod:`~celery.bin.worker` with the :sig:`KILL` signal
 (:option:`-9`), unless you've tried :sig:`TERM` a few times and waited a few
-minutes to let it get a chance to shut down.  As if you do tasks may be
-terminated mid-execution, and they will not be re-run unless you have the
-`acks_late` option set (`Task.acks_late` / :setting:`CELERY_ACKS_LATE`).
+minutes to let it get a chance to shut down.
+
+Also make sure you kill the main worker process, not its child processes.
+You can direct a kill signal to a specific child process if you know the
+process is currently executing a task the worker shutdown is depending on,
+but this also means that a ``WorkerLostError`` state will be set for the
+task so the task will not run again.
+
+Identifying the type of process is easier if you have installed the
+``setproctitle`` module:
+
+.. code-block:: bash
+
+    pip install setproctitle
+
+With this library installed you will be able to see the type of process in ps
+listings, but the worker must be restarted for this to take effect.
 
 .. seealso::
 

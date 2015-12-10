@@ -43,7 +43,8 @@ __all__ = ['EX_OK', 'EX_FAILURE', 'EX_UNAVAILABLE', 'EX_USAGE', 'SYSTEM',
            'close_open_fds', 'DaemonContext', 'detached', 'parse_uid',
            'parse_gid', 'setgroups', 'initgroups', 'setgid', 'setuid',
            'maybe_drop_privileges', 'signals', 'set_process_title',
-           'set_mp_process_title', 'get_errno_name', 'ignore_errno']
+           'set_mp_process_title', 'get_errno_name', 'ignore_errno',
+           'fd_by_path']
 
 # exitcodes
 EX_OK = getattr(os, 'EX_OK', 0)
@@ -265,6 +266,43 @@ def _create_pidlock(pidfile):
     return pidlock
 
 
+def fd_by_path(paths):
+    """Return a list of fds.
+
+    This method returns list of fds corresponding to
+    file paths passed in paths variable.
+
+    :keyword paths: List of file paths go get fd for.
+
+    :returns: :list:.
+
+    **Example**:
+
+    .. code-block:: python
+
+        keep = fd_by_path(['/dev/urandom',
+                           '/my/precious/'])
+    """
+    stats = set()
+    for path in paths:
+        try:
+            fd = os.open(path, os.O_RDONLY)
+        except OSError:
+            continue
+        try:
+            stats.add(os.fstat(fd)[1:3])
+        finally:
+            os.close(fd)
+
+    def fd_in_stats(fd):
+        try:
+            return os.fstat(fd)[1:3] in stats
+        except OSError:
+            return False
+
+    return [_fd for _fd in range(get_fdmax(2048)) if fd_in_stats(_fd)]
+
+
 if hasattr(os, 'closerange'):
 
     def close_open_fds(keep=None):
@@ -295,7 +333,8 @@ class DaemonContext(object):
     def __init__(self, pidfile=None, workdir=None, umask=None,
                  fake=False, after_chdir=None, **kwargs):
         if isinstance(umask, string_t):
-            umask = int(umask, 8)  # convert str -> octal
+            # octal or decimal, depending on initial zero.
+            umask = int(umask, 8 if umask.startswith('0') else 10)
         self.workdir = workdir or DAEMON_WORKDIR
         self.umask = umask
         self.fake = fake
@@ -320,7 +359,10 @@ class DaemonContext(object):
                 self.after_chdir()
 
             if not self.fake:
-                close_open_fds(self.stdfds)
+                # We need to keep /dev/urandom from closing because
+                # shelve needs it, and Beat needs shelve to start.
+                keep = list(self.stdfds) + fd_by_path(['/dev/urandom'])
+                close_open_fds(keep)
                 for fd in self.stdfds:
                     self.redirect_to_null(maybe_fileno(fd))
 

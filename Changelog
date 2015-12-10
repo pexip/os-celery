@@ -8,6 +8,329 @@ This document contains change notes for bugfix releases in the 3.1.x series
 (Cipater), please see :ref:`whatsnew-3.1` for an overview of what's
 new in Celery 3.1.
 
+.. _version-3.1.19:
+
+3.1.19
+======
+:release-date: 2015-10-26 01:00 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.29 <kombu:version-3.0.29>`.
+
+    - Now depends on :mod:`billiard` 3.3.0.21.
+
+-  **Results**: Fixed MongoDB result backend URL parsing problem
+   (Issue celery/kombu#375).
+
+- **Worker**: Task request now properly sets ``priority`` in delivery_info.
+
+    Fix contributed by Gerald Manipon.
+
+- **Beat**: PyPy shelve may raise ``KeyError`` when setting keys
+  (Issue #2862).
+
+- **Programs**: :program:`celery beat --deatched` now working on PyPy.
+
+    Fix contributed by Krzysztof Bujniewicz.
+
+- **Results**: Redis result backend now ensures all pipelines are cleaned up.
+
+    Contributed by Justin Patrin.
+
+- **Results**: Redis result backend now allows for timeout to be set in the
+  query portion of the result backend URL.
+
+    E.g. ``CELERY_RESULT_BACKEND = 'redis://?timeout=10'``
+
+    Contributed by Justin Patrin.
+
+- **Results**: ``result.get`` now properly handles failures where the
+  exception value is set to :const:`None` (Issue #2560).
+
+- **Prefork pool**: Fixed attribute error ``proc.dead``.
+
+- **Worker**: Fixed worker hanging when gossip/heartbeat disabled
+  (Issue #1847).
+
+    Fix contributed by Aaron Webber and Bryan Helmig.
+
+- **Results**: MongoDB result backend now supports pymongo 3.x
+  (Issue #2744).
+
+    Fix contributed by Sukrit Khera.
+
+- **Results**: RPC/amqp backends did not deserialize exceptions properly
+  (Issue #2691).
+
+    Fix contributed by Sukrit Khera.
+
+- **Programs**: Fixed problem with :program:`celery amqp`'s
+  ``basic_publish`` (Issue #2013).
+
+- **Worker**: Embedded beat now properly sets app for thread/process
+  (Issue #2594).
+
+- **Documentation**: Many improvements and typos fixed.
+
+    Contributions by:
+
+        Carlos Garcia-Dubus
+        D. Yu
+        jerry
+        Jocelyn Delalande
+        Josh Kupershmidt
+        Juan Rossi
+        kanemra
+        Paul Pearce
+        Pavel Savchenko
+        Sean Wang
+        Seungha Kim
+        Zhaorong Ma
+
+.. _version-3.1.18:
+
+3.1.18
+======
+:release-date: 2015-04-22 05:30 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.25 <kombu:version-3.0.25>`.
+
+    - Now depends on :mod:`billiard` 3.3.0.20.
+
+- **Django**: Now supports Django 1.8 (Issue #2536).
+
+    Fix contributed by Bence Tamas and Mickaël Penhard.
+
+- **Results**: MongoDB result backend now compatible with pymongo 3.0.
+
+    Fix contributed by Fatih Sucu.
+
+- **Tasks**: Fixed bug only happening when a task has multiple callbacks
+  (Issue #2515).
+
+    Fix contributed by NotSqrt.
+
+- **Commands**: Preload options now support ``--arg value`` syntax.
+
+    Fix contributed by John Anderson.
+
+- **Compat**: A typo caused ``celery.log.setup_logging_subsystem`` to be
+  undefined.
+
+    Fix contributed by Gunnlaugur Thor Briem.
+
+- **init scripts**: The celerybeat generic init script now uses
+  ``/bin/sh`` instead of bash (Issue #2496).
+
+    Fix contributed by Jelle Verstraaten.
+
+- **Django**: Fixed a :exc:`TypeError` sometimes occurring in logging
+  when validating models.
+
+    Fix contributed by Alexander.
+
+- **Commands**: Worker now supports new ``--executable`` argument that can
+  be used with ``--detach``.
+
+    Contributed by Bert Vanderbauwhede.
+
+- **Canvas**: Fixed crash in chord unlock fallback task (Issue #2404).
+
+- **Worker**: Fixed rare crash occurring with ``--autoscale`` enabled
+  (Issue #2411).
+
+- **Django**: Properly recycle worker Django database connections when the
+  Django ``CONN_MAX_AGE`` setting is enabled (Issue #2453).
+
+    Fix contributed by Luke Burden.
+
+.. _version-3.1.17:
+
+3.1.17
+======
+:release-date: 2014-11-19 03:30 P.M UTC
+:release-by: Ask Solem
+
+.. admonition:: Do not enable the :setting:`CELERYD_FORCE_EXECV` setting!
+
+    Please review your configuration and disable this option if you're using the
+    RabbitMQ or Redis transport.
+
+    Keeping this option enabled after 3.1 means the async based prefork pool will
+    be disabled, which can easily cause instability.
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.24 <kombu:version-3.0.24>`.
+
+        Includes the new Qpid transport coming in Celery 3.2, backported to
+        support those who may still require Python 2.6 compatibility.
+
+    - Now depends on :mod:`billiard` 3.3.0.19.
+
+    - ``celery[librabbitmq]`` now depends on librabbitmq 1.6.1.
+
+- **Task**: The timing of ETA/countdown tasks were off after the example ``LocalTimezone``
+  implementation in the Python documentation no longer works in Python 3.4.
+  (Issue #2306).
+
+- **Task**: Raising :exc:`~celery.exceptions.Ignore` no longer sends
+  ``task-failed`` event (Issue #2365).
+
+- **Redis result backend**: Fixed unbound local errors.
+
+    Fix contributed by Thomas French.
+
+- **Task**: Callbacks was not called properly if ``link`` was a list of
+  signatures (Issuse #2350).
+
+- **Canvas**: chain and group now handles json serialized signatures
+  (Issue #2076).
+
+- **Results**: ``.join_native()`` would accidentally treat the ``STARTED``
+  state as being ready (Issue #2326).
+
+    This could lead to the chord callback being called with invalid arguments
+    when using chords with the :setting:`CELERY_TRACK_STARTED` setting
+    enabled.
+
+- **Canvas**: The ``chord_size`` attribute is now set for all canvas primitives,
+  making sure more combinations will work with the ``new_join`` optimization
+  for Redis (Issue #2339).
+
+- **Task**: Fixed problem with app not being properly propagated to
+  ``trace_task`` in all cases.
+
+    Fix contributed by kristaps.
+
+- **Worker**: Expires from task message now associated with a timezone.
+
+    Fix contributed by Albert Wang.
+
+- **Cassandra result backend**: Fixed problems when using detailed mode.
+
+    When using the Cassandra backend in detailed mode, a regression
+    caused errors when attempting to retrieve results.
+
+    Fix contributed by Gino Ledesma.
+
+- **Mongodb Result backend**: Pickling the backend instance will now include
+  the original url (Issue #2347).
+
+    Fix contributed by Sukrit Khera.
+
+- **Task**: Exception info was not properly set for tasks raising
+  :exc:`~celery.exceptions.Reject` (Issue #2043).
+
+- **Worker**: Duplicates are now removed when loading the set of revoked tasks
+  from the worker state database (Issue #2336).
+
+- **celery.contrib.rdb**: Fixed problems with ``rdb.set_trace`` calling stop
+  from the wrong frame.
+
+    Fix contributed by llllllllll.
+
+- **Canvas**: ``chain`` and ``chord`` can now be immutable.
+
+- **Canvas**: ``chord.apply_async`` will now keep partial args set in
+  ``self.args`` (Issue #2299).
+
+- **Results**: Small refactoring so that results are decoded the same way in
+  all result backends.
+
+- **Logging**: The ``processName`` format was introduced in Py2.6.2 so for
+  compatibility this format is now excluded when using earlier versions
+  (Issue #1644).
+
+.. _version-3.1.16:
+
+3.1.16
+======
+:release-date: 2014-10-03 06:00 P.M UTC
+:release-by: Ask Solem
+
+- **Worker**: 3.1.15 broke ``-Ofair`` behavior (Issue #2286).
+
+    This regression could result in all tasks executing
+    in a single child process if ``-Ofair`` was enabled.
+
+- **Canvas**: ``celery.signature`` now properly forwards app argument
+  in all cases.
+
+- **Task**: ``.retry()`` did not raise the exception correctly
+  when called without a current exception.
+
+    Fix contributed by Andrea Rabbaglietti.
+
+- **Worker**: The ``enable_events`` remote control command
+  disabled worker-related events by mistake (Issue #2272).
+
+    Fix contributed by Konstantinos Koukopoulos.
+
+- **Django**: Adds support for Django 1.7 class names in INSTALLED_APPS
+  when using ``app.autodiscover_tasks()``  (Issue #2248).
+
+- **Sphinx**: ``celery.contrib.sphinx`` now uses ``getfullargspec``
+  on Python 3 (Issue #2302).
+
+- **Redis/Cache Backends**: Chords will now run at most once if one or more tasks
+  in the chord are executed multiple times for some reason.
+
+.. _version-3.1.15:
+
+3.1.15
+======
+:release-date: 2014-09-14 11:00 P.M UTC
+:release-by: Ask Solem
+
+- **Django**: Now makes sure ``django.setup()`` is called
+  before importing any task modules (Django 1.7 compatibility, Issue #2227)
+
+- **Results**: ``result.get()`` was misbehaving by calling
+  ``backend.get_task_meta`` in a finally call leading to
+  AMQP result backend queues not being properly cleaned up (Issue #2245).
+
+.. _version-3.1.14:
+
+3.1.14
+======
+:release-date: 2014-09-08 03:00 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.22 <kombu:version-3.0.22>`.
+
+- **Init scripts**: The generic worker init scripts ``status`` command
+  now gets an accurate pidfile list (Issue #1942).
+
+- **Init scripts**: The generic beat script now implements the ``status``
+   command.
+
+    Contributed by John Whitlock.
+
+- **Commands**: Multi now writes informational output to stdout instead of stderr.
+
+- **Worker**: Now ignores not implemented error for ``pool.restart``
+  (Issue #2153).
+
+- **Task**: Retry no longer raises retry exception when executed in eager
+  mode (Issue #2164).
+
+- **AMQP Result backend**: Now ensured ``on_interval`` is called at least
+  every second for blocking calls to properly propagate parent errors.
+
+- **Django**: Compatibility with Django 1.7 on Windows (Issue #2126).
+
+- **Programs**: `--umask` argument can be now specified in both octal (if starting
+  with 0) or decimal.
+
+
 .. _version-3.1.13:
 
 3.1.13
@@ -299,7 +622,7 @@ News
     Celery), so if you do enable it then make sure you do so on all
     nodes.
 
-    See :ref:`redis-caveats-fanout-patterns`.
+    See :ref:`redis-caveats`.
 
     This will be the default in Celery 3.2.
 

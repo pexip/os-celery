@@ -99,6 +99,12 @@ def maybe_unroll_group(g):
         return g.tasks[0] if size == 1 else g
 
 
+def _upgrade(fields, sig):
+    """Used by custom signatures in .from_dict, to keep common fields."""
+    sig.update(chord_size=fields.get('chord_size'))
+    return sig
+
+
 class Signature(dict):
     """Class that wraps the arguments and execution options
     for a single task invocation.
@@ -158,7 +164,8 @@ class Signature(dict):
              kwargs=kwargs or {},
              options=dict(options or {}, **ex),
              subtask_type=subtask_type,
-             immutable=immutable)
+             immutable=immutable,
+             chord_size=None)
 
     def __call__(self, *partial_args, **partial_kwargs):
         args, kwargs, _ = self._merge(partial_args, partial_kwargs, None)
@@ -181,7 +188,7 @@ class Signature(dict):
                 dict(self.kwargs, **kwargs) if kwargs else self.kwargs,
                 dict(self.options, **options) if options else self.options)
 
-    def clone(self, args=(), kwargs={}, **opts):
+    def clone(self, args=(), kwargs={}, app=None, **opts):
         # need to deepcopy options so origins links etc. is not modified.
         if args or kwargs or opts:
             args, kwargs, opts = self._merge(args, kwargs, opts)
@@ -190,7 +197,9 @@ class Signature(dict):
         s = Signature.from_dict({'task': self.task, 'args': tuple(args),
                                  'kwargs': kwargs, 'options': deepcopy(opts),
                                  'subtask_type': self.subtask_type,
-                                 'immutable': self.immutable}, app=self._app)
+                                 'chord_size': self.chord_size,
+                                 'immutable': self.immutable},
+                                app=app or self._app)
         s._type = self._type
         return s
     partial = clone
@@ -207,7 +216,7 @@ class Signature(dict):
             opts['group_id'] = group_id
         if chord:
             opts['chord'] = chord
-        return self.AsyncResult(tid)
+        return self.app.AsyncResult(tid)
     _freeze = freeze
 
     def replace(self, args=None, kwargs=None, options=None):
@@ -332,6 +341,7 @@ class Signature(dict):
     kwargs = _getitem_property('kwargs')
     options = _getitem_property('options')
     subtask_type = _getitem_property('subtask_type')
+    chord_size = _getitem_property('chord_size')
     immutable = _getitem_property('immutable')
 
 
@@ -353,11 +363,11 @@ class chain(Signature):
 
     @classmethod
     def from_dict(self, d, app=None):
-        tasks = d['kwargs']['tasks']
+        tasks = [maybe_signature(t, app=app) for t in d['kwargs']['tasks']]
         if d['args'] and tasks:
             # partial args passed on to first task in chain (Issue #1057).
             tasks[0]['args'] = tasks[0]._merge(d['args'])[0]
-        return chain(*d['kwargs']['tasks'], app=app, **kwdict(d['options']))
+        return _upgrade(d, chain(*tasks, app=app, **d['options']))
 
     @property
     def type(self):
@@ -389,7 +399,9 @@ class _basemap(Signature):
 
     @classmethod
     def from_dict(cls, d, app=None):
-        return cls(*cls._unpack_args(d['kwargs']), app=app, **d['options'])
+        return _upgrade(
+            d, cls(*cls._unpack_args(d['kwargs']), app=app, **d['options']),
+        )
 
 
 @Signature.register_type
@@ -425,7 +437,10 @@ class chunks(Signature):
 
     @classmethod
     def from_dict(self, d, app=None):
-        return chunks(*self._unpack_args(d['kwargs']), app=app, **d['options'])
+        return _upgrade(
+            d, chunks(*self._unpack_args(
+                d['kwargs']), app=app, **d['options']),
+        )
 
     def apply_async(self, args=(), kwargs={}, **opts):
         return self.group().apply_async(args, kwargs, **opts)
@@ -473,12 +488,12 @@ class group(Signature):
 
     @classmethod
     def from_dict(self, d, app=None):
-        tasks = d['kwargs']['tasks']
+        tasks = [maybe_signature(t, app=app) for t in d['kwargs']['tasks']]
         if d['args'] and tasks:
             # partial args passed on to all tasks in the group (Issue #1057).
             for task in tasks:
                 task['args'] = task._merge(d['args'])[0]
-        return group(tasks, app=app, **kwdict(d['options']))
+        return _upgrade(d, group(tasks, app=app, **kwdict(d['options'])))
 
     def apply_async(self, args=(), kwargs=None, add_to_parent=True, **options):
         tasks = _maybe_clone(self.tasks, app=self._app)
@@ -541,14 +556,17 @@ class group(Signature):
         return repr(self.tasks)
 
     @property
+    def app(self):
+        return self._app or (self.tasks[0].app if self.tasks else current_app)
+
+    @property
     def type(self):
         if self._type:
             return self._type
         # taking the app from the first task in the list, there may be a
         # better solution for this, e.g. to consolidate tasks with the same
         # app and apply them in batches.
-        app = self._app if self._app else self.tasks[0].type.app
-        return app.tasks[self['task']]
+        return self.app.tasks[self['task']]
 
 
 @Signature.register_type
@@ -569,7 +587,7 @@ class chord(Signature):
     @classmethod
     def from_dict(self, d, app=None):
         args, d['kwargs'] = self._unpack_args(**kwdict(d['kwargs']))
-        return self(*args, app=app, **kwdict(d))
+        return _upgrade(d, self(*args, app=app, **kwdict(d)))
 
     @staticmethod
     def _unpack_args(header=None, body=None, **kwargs):
@@ -578,23 +596,30 @@ class chord(Signature):
         return (header, body), kwargs
 
     @property
-    def type(self):
-        if self._type:
-            return self._type
+    def app(self):
         # we will be able to fix this mess in 3.2 when we no longer
         # require an actual task implementation for chord/group
         if self._app:
-            app = self._app
-        else:
+            return self._app
+        app = None if self.body is None else self.body.app
+        if app is None:
             try:
-                app = self.tasks[0].type.app
+                app = self.tasks[0].app
             except IndexError:
-                app = self.body.type.app
-        return app.tasks['celery.chord']
+                app = None
+        return app if app is not None else current_app
+
+    @property
+    def type(self):
+        if self._type:
+            return self._type
+        return self.app.tasks['celery.chord']
 
     def apply_async(self, args=(), kwargs={}, task_id=None,
                     producer=None, publisher=None, connection=None,
                     router=None, result_cls=None, **options):
+        args = (tuple(args) + tuple(self.args)
+                if args and not self.immutable else self.args)
         body = kwargs.get('body') or self.kwargs['body']
         kwargs = dict(self.kwargs, **kwargs)
         body = body.clone(**options)
@@ -641,12 +666,12 @@ class chord(Signature):
     body = _getitem_property('kwargs.body')
 
 
-def signature(varies, *args, **kwargs):
+def signature(varies, args=(), kwargs={}, options={}, app=None, **kw):
     if isinstance(varies, dict):
         if isinstance(varies, Signature):
-            return varies.clone()
-        return Signature.from_dict(varies)
-    return Signature(varies, *args, **kwargs)
+            return varies.clone(app=app)
+        return Signature.from_dict(varies, app=app)
+    return Signature(varies, args, kwargs, options, app=app, **kw)
 subtask = signature   # XXX compat
 
 
@@ -660,5 +685,4 @@ def maybe_signature(d, app=None):
         if app is not None:
             d._app = app
         return d
-
 maybe_subtask = maybe_signature  # XXX compat

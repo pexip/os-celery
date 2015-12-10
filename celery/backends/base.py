@@ -165,11 +165,12 @@ class BaseBackend(object):
 
     def exception_to_python(self, exc):
         """Convert serialized exception to Python exception."""
-        if self.serializer in EXCEPTION_ABLE_CODECS:
-            return get_pickled_exception(exc)
-        elif not isinstance(exc, BaseException):
-            return create_exception_cls(
-                from_utf8(exc['exc_type']), __name__)(exc['exc_message'])
+        if exc:
+            if self.serializer in EXCEPTION_ABLE_CODECS:
+                return get_pickled_exception(exc)
+            elif not isinstance(exc, BaseException):
+                return create_exception_cls(
+                    from_utf8(exc['exc_type']), __name__)(exc['exc_message'])
         return exc
 
     def prepare_value(self, result):
@@ -182,6 +183,14 @@ class BaseBackend(object):
         _, _, payload = dumps(data, serializer=self.serializer)
         return payload
 
+    def meta_from_decoded(self, meta):
+        if meta['status'] in self.EXCEPTION_STATES:
+            meta['result'] = self.exception_to_python(meta['result'])
+        return meta
+
+    def decode_result(self, payload):
+        return self.meta_from_decoded(self.decode(payload))
+
     def decode(self, payload):
         payload = PY3 and payload or str(payload)
         return loads(payload,
@@ -190,8 +199,7 @@ class BaseBackend(object):
                      accept=self.accept)
 
     def wait_for(self, task_id,
-                 timeout=None, propagate=True, interval=0.5, no_ack=True,
-                 on_interval=None):
+                 timeout=None, interval=0.5, no_ack=True, on_interval=None):
         """Wait for task and return its result.
 
         If the task raises an exception, this exception
@@ -206,14 +214,9 @@ class BaseBackend(object):
         time_elapsed = 0.0
 
         while 1:
-            status = self.get_status(task_id)
-            if status == states.SUCCESS:
-                return self.get_result(task_id)
-            elif status in states.PROPAGATE_STATES:
-                result = self.get_result(task_id)
-                if propagate:
-                    raise result
-                return result
+            meta = self.get_task_meta(task_id)
+            if meta['status'] in states.READY_STATES:
+                return meta
             if on_interval:
                 on_interval()
             # avoid hammering the CPU checking status.
@@ -271,11 +274,7 @@ class BaseBackend(object):
 
     def get_result(self, task_id):
         """Get the result of a task."""
-        meta = self.get_task_meta(task_id)
-        if meta['status'] in self.EXCEPTION_STATES:
-            return self.exception_to_python(meta['result'])
-        else:
-            return meta['result']
+        return self.get_task_meta(task_id).get('result')
 
     def get_children(self, task_id):
         """Get the list of subtasks sent by a task."""
@@ -434,17 +433,22 @@ class KeyValueStoreBackend(BaseBackend):
                 return bytes_to_str(key[len(prefix):])
         return bytes_to_str(key)
 
+    def _filter_ready(self, values, READY_STATES=states.READY_STATES):
+        for k, v in values:
+            if v is not None:
+                v = self.decode_result(v)
+                if v['status'] in READY_STATES:
+                    yield k, v
+
     def _mget_to_results(self, values, keys):
         if hasattr(values, 'items'):
             # client returns dict so mapping preserved.
-            return dict((self._strip_prefix(k), self.decode(v))
-                        for k, v in items(values)
-                        if v is not None)
+            return dict((self._strip_prefix(k), v)
+                        for k, v in self._filter_ready(items(values)))
         else:
             # client returns list so need to recreate mapping.
-            return dict((bytes_to_str(keys[i]), self.decode(value))
-                        for i, value in enumerate(values)
-                        if value is not None)
+            return dict((bytes_to_str(keys[i]), v)
+                        for i, v in self._filter_ready(enumerate(values)))
 
     def get_many(self, task_ids, timeout=None, interval=0.5, no_ack=True,
                  READY_STATES=states.READY_STATES):
@@ -500,7 +504,7 @@ class KeyValueStoreBackend(BaseBackend):
         meta = self.get(self.get_key_for_task(task_id))
         if not meta:
             return {'status': states.PENDING, 'result': None}
-        return self.decode(meta)
+        return self.decode_result(meta)
 
     def _restore_group(self, group_id):
         """Get task metadata for a task by id."""
@@ -550,7 +554,11 @@ class KeyValueStoreBackend(BaseBackend):
                     ChordError('GroupResult {0} no longer exists'.format(gid)),
                 )
         val = self.incr(key)
-        if val >= len(deps):
+        size = len(deps)
+        if val > size:
+            logger.warning('Chord counter incremented too many times for %r',
+                           gid)
+        elif val == size:
             callback = maybe_signature(task.request.chord, app=app)
             j = deps.join_native if deps.supports_native_join else deps.join
             try:

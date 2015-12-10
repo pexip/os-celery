@@ -150,7 +150,7 @@ class Celery(object):
         if not isinstance(self._tasks, TaskRegistry):
             self._tasks = TaskRegistry(self._tasks or {})
 
-        # If the class defins a custom __reduce_args__ we need to use
+        # If the class defines a custom __reduce_args__ we need to use
         # the old way of pickling apps, which is pickling a list of
         # args instead of the new way that pickles a dict of keywords.
         self._using_v1_reduce = app_has_custom(self, '__reduce_args__')
@@ -221,7 +221,8 @@ class Celery(object):
 
             def _create_task_cls(fun):
                 if shared:
-                    cons = lambda app: app._task_from_fun(fun, **opts)
+                    def cons(app):
+                        return app._task_from_fun(fun, **opts)
                     cons.__name__ = fun.__name__
                     connect_on_app_finalize(cons)
                 if self.accept_magic_kwargs:  # compat mode
@@ -538,7 +539,7 @@ class Celery(object):
         when unpickling."""
         return {
             'main': self.main,
-            'changes': self.conf.changes,
+            'changes': self.conf.changes if self.configured else self._preconf,
             'loader': self.loader_cls,
             'backend': self.backend_cls,
             'amqp': self.amqp_cls,
