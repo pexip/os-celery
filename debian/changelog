@@ -1,9 +1,15 @@
-celery (3.1.19-2pexip1) pexip; urgency=low
+celery (3.1.19-2pexip2) pexip; urgency=low
 
-  * New upstream release.
-  * debian/control, debian/rules: disable Python 3 package
+  * debian/control: Simplify dependencies
 
  -- Colin Bradbury <colin@pexip.com>  Thu, 10 Dec 2015 17:21:04 +0000
+
+ celery (3.1.19-2pexip1) pexip; urgency=low
+
+   * New upstream release.
+   * debian/control, debian/rules: disable Python 3 package
+
+  -- Colin Bradbury <colin@pexip.com>  Thu, 10 Dec 2015 17:21:04 +0000
 
 celery (3.1.19-2) unstable; urgency=medium
 
