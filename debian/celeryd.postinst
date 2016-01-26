@@ -32,7 +32,16 @@ case "$1" in
     ;;
 esac
 
-#DEBHELPER#
+if [ -x "/etc/init.d/celerybeat" ]; then
+	if [ ! -e "/etc/init/celerybeat.conf" ]; then
+		update-rc.d celerybeat defaults >/dev/null
+	fi
+fi
+if [ -x "/etc/init.d/celeryd" ]; then
+	if [ ! -e "/etc/init/celeryd.conf" ]; then
+		update-rc.d celeryd defaults >/dev/null
+	fi
+fi
 
 exit 0
 
