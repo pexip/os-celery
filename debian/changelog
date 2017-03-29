@@ -1,3 +1,66 @@
+celery (3.1.23-7) unstable; urgency=medium
+
+  * Fix bashisms in initd scripts. Closes: #858298.
+
+ -- Brian May <bam@debian.org>  Thu, 30 Mar 2017 07:55:02 +1100
+
+celery (3.1.23-6) unstable; urgency=medium
+
+  * Change celeryd to depend on python-celery-common instead of python-celery.
+    Closes: #858305.
+  * Add celeryd depends on lsb-base.
+
+ -- Brian May <bam@debian.org>  Fri, 24 Mar 2017 17:00:36 +1100
+
+celery (3.1.23-5) unstable; urgency=medium
+
+  * Move celeryd to admin section. Closes: #832192.
+
+ -- Brian May <bam@debian.org>  Sun, 31 Jul 2016 16:19:29 +1000
+
+celery (3.1.23-4) unstable; urgency=medium
+
+  * Update standards version to 3.9.8
+  * Fix su invocation. Closes: #824786.
+
+ -- Brian May <bam@debian.org>  Wed, 25 May 2016 18:09:45 +1000
+
+celery (3.1.23-2) unstable; urgency=medium
+
+  * Update dependencies. Closes: #823720.
+
+ -- Brian May <bam@debian.org>  Mon, 09 May 2016 11:11:06 +1000
+
+celery (3.1.23-1) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * Fixed VCS URL
+
+  [ Brian May ]
+  * New upstream release.
+
+ -- Brian May <bam@debian.org>  Sun, 17 Apr 2016 19:17:26 +1000
+
+celery (3.1.20-1) unstable; urgency=low
+
+  * New upstream release.
+  * Reverse dependencies between python(3)-celery and python-celery-common as
+    the later only provides supplemental tools depending on the actual
+    implementation.
+  * Refresh patch to remove external assets from documentation.
+  * Bump all dependencies on billiard to >= 3.3.0.22.
+  * Bump all dependencies on kombu to >= 3.0.33.
+  * Demote python-kombu-doc to an unversioned Build-Depends.
+  * Use https in Vcs-Git field.
+
+ -- Michael Fladischer <fladi@debian.org>  Mon, 01 Feb 2016 10:49:26 +0100
+
+celery (3.1.19-3) unstable; urgency=medium
+
+  * Requires python-billiard 3.3.0.21 or later. Closes: #810899.
+
+ -- Brian May <bam@debian.org>  Thu, 14 Jan 2016 11:06:44 +1100
+
 celery (3.1.19-2) unstable; urgency=medium
 
   * Fix debian/copyright. Closes: #803117.

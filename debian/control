@@ -10,12 +10,12 @@ Build-Depends: debhelper (>= 9),
                dvipng,
                locales,
                python-all (>= 2.7),
-               python-billiard,
+               python-billiard (>= 3.3.0.23),
                python-dateutil (>= 1.5),
                python-doc,
                python-gevent,
-               python-kombu (>= 3.0.29),
-               python-kombu-doc (>= 3.0.24),
+               python-kombu (>= 3.0.34),
+               python-kombu-doc,
                python-mailer,
                python-memcache,
                python-mock (>= 1.0.1),
@@ -30,10 +30,10 @@ Build-Depends: debhelper (>= 9),
                python-tz,
                python-unittest2,
                python3-all,
-               python3-billiard,
+               python3-billiard (>= 3.3.0.23),
                python3-dateutil,
                python3-doc,
-               python3-kombu (>= 3.0.29),
+               python3-kombu (>= 3.0.34),
                python3-memcache,
                python3-mock (>= 1.0.1),
                python3-nose,
@@ -47,13 +47,14 @@ Build-Depends: debhelper (>= 9),
                texlive-latex-extra
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.3
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: http://www.celeryproject.org/
-Vcs-Git: git://anonscm.debian.org/python-modules/packages/celery.git
+Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/celery.git
 Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/celery.git
 
 Package: python-celery-common
-Depends: ${misc:Depends}
+Depends: python3-celery (= ${binary:Version}) | python-celery (= ${binary:Version}),
+         ${misc:Depends}
 Replaces: python-celery (<< 3.1.12-2)
 Breaks: python-celery (<< 3.1.12-2)
 Architecture: all
@@ -79,10 +80,9 @@ Description: async task/job queue based on message passing (common files)
 
 Package: python-celery
 Architecture: all
-Depends: python-billiard,
-         python-celery-common (= ${binary:Version}),
+Depends: python-billiard (>= 3.3.0.23),
          python-dateutil (>= 1.5),
-         python-kombu (>= 3.0.24),
+         python-kombu (>= 3.0.34),
          python-mailer,
          python-memcache,
          python-pkg-resources,
@@ -117,9 +117,9 @@ Description: async task/job queue based on message passing (Python2 version)
 
 Package: python3-celery
 Architecture: all
-Depends: python3-billiard,
+Depends: python3-billiard (>= 3.3.0.23),
          python3-dateutil,
-         python3-kombu (>= 3.0.24),
+         python3-kombu (>= 3.0.34),
          python3-memcache,
          python3-pkg-resources,
          python3-pyparsing,
@@ -176,9 +176,11 @@ Description: async task/job queue based on message passing (Documentation)
  This package contains the documentation.
 
 Package: celeryd
+Section: admin
 Architecture: all
 Depends: adduser,
-         python-celery (= ${binary:Version}),
+         python-celery-common (= ${binary:Version}),
+         lsb-base (>= 3.0-6),
          ${misc:Depends}
 Breaks: python-celery (<< 3.0.24-1)
 Suggests: rabbitmq-server
