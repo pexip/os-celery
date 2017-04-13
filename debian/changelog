@@ -1,3 +1,9 @@
+celery (3.1.19-2pexip4) pexip; urgency=low
+
+  * debian/control, debian/rules: Reinstate python3 support
+
+ -- John-Mark Bell <jmb@pexip.com>  Thu, 13 Apr 2017 17:02:41 +0100
+
 celery (3.1.19-2pexip3) pexip; urgency=low
 
   * celeryd.postinst: Replace debhelper additions to avoid auto start of celery
@@ -89,6 +95,7 @@ celery (3.1.13-3) unstable; urgency=low
  -- Michael Fladischer <FladischerMichael@fladi.at>  Tue, 21 Oct 2014 15:59:31 +0200
 
 celery (3.1.13-2) unstable; urgency=low
+
   [Brian May]
   * Remove version requirement in wrappers. Closes: #758640.
   * Add breaks/replaces for python-celery-common as it now contains files
