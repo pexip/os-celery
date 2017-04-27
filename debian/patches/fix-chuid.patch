@@ -1,0 +1,13 @@
+diff --git a/extra/generic-init.d/celeryd b/extra/generic-init.d/celeryd
+index 8cef473..f2ed5e3 100755
+--- a/extra/generic-init.d/celeryd
++++ b/extra/generic-init.d/celeryd
+@@ -230,7 +230,7 @@ _get_pids() {
+ 
+ 
+ _chuid () {
+-    su "$CELERYD_USER" -c "$CELERYD_MULTI $*"
++    su "$CELERYD_USER" -s /bin/sh -c "$CELERYD_MULTI $*"
+ }
+ 
+ 

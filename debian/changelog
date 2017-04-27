@@ -1,6 +1,8 @@
 celery (3.1.19-2pexip4) pexip; urgency=low
 
   * debian/control, debian/rules: Reinstate python3 support
+  * debian/patches/fix-chuid.patch: Make init script privdrop work
+    even when the desired user account is configured with no shell.
 
  -- John-Mark Bell <jmb@pexip.com>  Thu, 13 Apr 2017 17:02:41 +0100
 
