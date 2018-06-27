@@ -1,6 +1,8 @@
 celery (3.1.19-2pexip5) pexip; urgency=low
 
   * debian/patches/lsb-start.patch: Don't start daemons on boot.
+  * debian/forking.conf: Give systemd sysv-generator hint that
+    init scripts fork daemons.
 
  -- John-Mark Bell <jmb@pexip.com>  Wed, 27 Jun 2018 18:48:56 +0100
 
