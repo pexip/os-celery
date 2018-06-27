@@ -1,3 +1,9 @@
+celery (3.1.19-2pexip5) pexip; urgency=low
+
+  * debian/patches/lsb-start.patch: Don't start daemons on boot.
+
+ -- John-Mark Bell <jmb@pexip.com>  Wed, 27 Jun 2018 18:48:56 +0100
+
 celery (3.1.19-2pexip4) pexip; urgency=low
 
   * debian/control, debian/rules: Reinstate python3 support
