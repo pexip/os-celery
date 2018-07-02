@@ -49,7 +49,7 @@ Standards-Version: 3.9.6
 Homepage: http://www.celeryproject.org/
 Vcs-Git: git://anonscm.debian.org/python-modules/packages/celery.git
 Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/celery.git
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ sid
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
 
 Package: python-celery-common
 Depends: ${misc:Depends}
