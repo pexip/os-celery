@@ -1,4 +1,4 @@
-From 59c070edc48f6fc504b74ce321cbbefffb0df81d Mon Sep 17 00:00:00 2001
+From 0026d0040dada5f52ab66d37baee8baf4e4d2e99 Mon Sep 17 00:00:00 2001
 From: Ask Solem <ask@celeryproject.org>
 Date: Mon, 28 Sep 2015 13:05:44 -0700
 Subject: [ci] Tests passing on Python 3.5
@@ -9,7 +9,7 @@ Subject: [ci] Tests passing on Python 3.5
  2 files changed, 14 insertions(+), 12 deletions(-)
 
 diff --git a/celery/tests/utils/test_functional.py b/celery/tests/utils/test_functional.py
-index e564a41..99b4f65 100644
+index 73f0d1d..ce112ac 100644
 --- a/celery/tests/utils/test_functional.py
 +++ b/celery/tests/utils/test_functional.py
 @@ -1,6 +1,7 @@
@@ -29,8 +29,8 @@ index e564a41..99b4f65 100644
  
  
  class test_LRUCache(Case):
-@@ -63,6 +64,8 @@ class test_LRUCache(Case):
-         self.assertEqual(list(x.keys()), [3, 6, 7])
+@@ -68,6 +69,8 @@ class test_LRUCache(Case):
+         self.assertEqual(list(x.keys()), [98, 99])
  
      def assertSafeIter(self, method, interval=0.01, size=10000):
 +        if sys.version_info >= (3,5):
@@ -39,7 +39,7 @@ index e564a41..99b4f65 100644
          from time import sleep
          x = LRUCache(size)
 diff --git a/celery/utils/functional.py b/celery/utils/functional.py
-index 600b65e..d3e64f2 100644
+index 944a095..6d383e0 100644
 --- a/celery/utils/functional.py
 +++ b/celery/utils/functional.py
 @@ -24,7 +24,7 @@ __all__ = ['LRUCache', 'is_list', 'maybe_list', 'memoize', 'mlazy', 'noop',
@@ -60,9 +60,9 @@ index 600b65e..d3e64f2 100644
  
      def update(self, *args, **kwargs):
          with self.mutex:
-@@ -68,9 +68,7 @@ class LRUCache(UserDict):
-                 for item in islice(iter(data), len(data) - limit):
-                     data.pop(item)
+@@ -67,9 +67,7 @@ class LRUCache(UserDict):
+                 for _ in range(len(data) - limit):
+                     data.popitem(last=False)
  
 -    def popitem(self, last=True, _needs_lock=IS_PYPY):
 -        if not _needs_lock:
@@ -71,7 +71,7 @@ index 600b65e..d3e64f2 100644
          with self.mutex:
              return self.data.popitem(last)
  
-@@ -84,8 +82,8 @@ class LRUCache(UserDict):
+@@ -83,8 +81,8 @@ class LRUCache(UserDict):
      def __iter__(self):
          return iter(self.data)
  
@@ -82,7 +82,7 @@ index 600b65e..d3e64f2 100644
              for k in self:
                  try:
                      yield (k, self.data[k])
-@@ -93,8 +91,8 @@ class LRUCache(UserDict):
+@@ -92,8 +90,8 @@ class LRUCache(UserDict):
                      pass
      iteritems = _iterate_items
  
@@ -93,7 +93,7 @@ index 600b65e..d3e64f2 100644
              for k in self:
                  try:
                      yield self.data[k]
-@@ -105,7 +103,8 @@ class LRUCache(UserDict):
+@@ -104,7 +102,8 @@ class LRUCache(UserDict):
  
      def _iterate_keys(self):
          # userdict.keys in py3k calls __getitem__
@@ -103,7 +103,7 @@ index 600b65e..d3e64f2 100644
      iterkeys = _iterate_keys
  
      def incr(self, key, delta=1):
-@@ -114,7 +113,7 @@ class LRUCache(UserDict):
+@@ -113,7 +112,7 @@ class LRUCache(UserDict):
              # integer as long as it exists and we can cast it
              newval = int(self.data.pop(key)) + delta
              self[key] = str(newval)

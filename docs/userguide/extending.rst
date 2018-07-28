@@ -106,6 +106,7 @@ and the worker currently defines two blueprints: **Worker**, and **Consumer**
 
 ----------------------------------------------------------
 
+.. _extending-worker_blueprint:
 
 Worker
 ======
@@ -118,20 +119,30 @@ to the Consumer blueprint.
 The :class:`~celery.worker.WorkController` is the core worker implementation,
 and contains several methods and attributes that you can use in your bootstep.
 
+.. _extending-worker_blueprint-attributes:
+
 Attributes
 ----------
+
+.. _extending-worker-app:
 
 .. attribute:: app
 
     The current app instance.
 
+.. _extending-worker-hostname:
+
 .. attribute:: hostname
 
     The workers node name (e.g. `worker1@example.com`)
 
+.. _extending-worker-blueprint:
+
 .. attribute:: blueprint
 
     This is the worker :class:`~celery.bootsteps.Blueprint`.
+
+.. _extending-worker-hub:
 
 .. attribute:: hub
 
@@ -148,6 +159,8 @@ Attributes
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.components:Hub', )
 
+.. _extending-worker-pool:
+
 .. attribute:: pool
 
     The current process/eventlet/gevent/thread pool.
@@ -160,6 +173,8 @@ Attributes
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.components:Pool', )
 
+.. _extending-worker-timer:
+
 .. attribute:: timer
 
     :class:`~kombu.async.timer.Timer` used to schedule functions.
@@ -170,6 +185,8 @@ Attributes
 
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.components:Timer', )
+
+.. _extending-worker-statedb:
 
 .. attribute:: statedb
 
@@ -185,6 +202,8 @@ Attributes
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.components:Statedb', )
 
+.. _extending-worker-autoscaler:
+
 .. attribute:: autoscaler
 
     :class:`~celery.worker.autoscaler.Autoscaler` used to automatically grow
@@ -199,6 +218,8 @@ Attributes
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.autoscaler:Autoscaler', )
 
+.. _extending-worker-autoreloader:
+
 .. attribute:: autoreloader
 
     :class:`~celery.worker.autoreloder.Autoreloader` used to automatically
@@ -211,6 +232,9 @@ Attributes
 
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker.autoreloader:Autoreloader', )
+
+Example worker bootstep
+-----------------------
 
 An example Worker bootstep could be:
 
@@ -242,7 +266,6 @@ An example Worker bootstep could be:
 
 Every method is passed the current ``WorkController`` instance as the first
 argument.
-
 
 Another example could use the timer to wake up at regular intervals:
 
@@ -276,6 +299,8 @@ Another example could use the timer to wake up at regular intervals:
                 if req.time_start and time() - req.time_start > self.timeout:
                     raise SystemExit()
 
+.. _extending-consumer_blueprint:
+
 Consumer
 ========
 
@@ -289,24 +314,36 @@ be possible to restart your blueprint.  An additional 'shutdown' method is
 defined for consumer bootsteps, this method is called when the worker is
 shutdown.
 
+.. _extending-consumer-attributes:
+
 Attributes
 ----------
+
+.. _extending-consumer-app:
 
 .. attribute:: app
 
     The current app instance.
 
+.. _extending-consumer-controller:
+
 .. attribute:: controller
 
     The parent :class:`~@WorkController` object that created this consumer.
+
+.. _extending-consumer-hostname:
 
 .. attribute:: hostname
 
     The workers node name (e.g. `worker1@example.com`)
 
+.. _extending-consumer-blueprint:
+
 .. attribute:: blueprint
 
     This is the worker :class:`~celery.bootsteps.Blueprint`.
+
+.. _extending-consumer-hub:
 
 .. attribute:: hub
 
@@ -323,6 +360,7 @@ Attributes
         class WorkerStep(bootsteps.StartStopStep):
             requires = ('celery.worker:Hub', )
 
+.. _extending-consumer-connection:
 
 .. attribute:: connection
 
@@ -336,6 +374,8 @@ Attributes
         class Step(bootsteps.StartStopStep):
             requires = ('celery.worker.consumer:Connection', )
 
+.. _extending-consumer-event_dispatcher:
+
 .. attribute:: event_dispatcher
 
     A :class:`@events.Dispatcher` object that can be used to send events.
@@ -347,26 +387,81 @@ Attributes
         class Step(bootsteps.StartStopStep):
             requires = ('celery.worker.consumer:Events', )
 
+.. _extending-consumer-gossip:
+
 .. attribute:: gossip
 
     Worker to worker broadcast communication
-    (class:`~celery.worker.consumer.Gossip`).
+    (:class:`~celery.worker.consumer.Gossip`).
 
     A consumer bootstep must require the `Gossip` bootstep to use this.
 
     .. code-block:: python
 
-        class Step(bootsteps.StartStopStep):
-            requires = ('celery.worker.consumer:Events', )
+        class RatelimitStep(bootsteps.StartStopStep):
+            """Rate limit tasks based on the number of workers in the
+            cluster."""
+            requires = ('celery.worker.consumer:Gossip',)
+
+            def start(self, c):
+                self.c = c
+                self.c.gossip.on.node_join.add(self.on_cluster_size_change)
+                self.c.gossip.on.node_leave.add(self.on_cluster_size_change)
+                self.c.gossip.on.node_lost.add(self.on_node_lost)
+                self.tasks = [
+                    self.app.tasks['proj.tasks.add']
+                    self.app.tasks['proj.tasks.mul']
+                ]
+                self.last_size = None
+
+            def on_cluster_size_change(self, worker):
+                cluster_size = len(self.c.gossip.state.alive_workers())
+                if cluster_size != self.last_size:
+                    for task in self.tasks:
+                        task.rate_limit = 1.0 / cluster_size
+                    self.c.reset_rate_limits()
+                    self.last_size = cluster_size
+
+            def on_node_lost(self, worker):
+                # may have processed heartbeat too late, so wake up soon
+                # in order to see if the worker recovered.
+                self.c.timer.call_after(10.0, self.on_cluster_size_change)
+
+    **Callbacks**
+
+    - ``<set> gossip.on.node_join``
+
+        Called whenever a new node joins the cluster, providing a
+        :class:`~celery.events.state.Worker` instance.
+
+    - ``<set> gossip.on.node_leave``
+
+        Called whenever a new node leaves the cluster (shuts down),
+        providing a :class:`~celery.events.state.Worker` instance.
+
+    - ``<set> gossip.on.node_lost``
+
+        Called whenever heartbeat was missed for a worker instance in the
+        cluster (heartbeat not received or processed in time),
+        providing a :class:`~celery.events.state.Worker` instance.
+
+        This does not necessarily mean the worker is actually offline, so use a time
+        out mechanism if the default heartbeat timeout is not sufficient.
+
+.. _extending-consumer-pool:
 
 .. attribute:: pool
 
     The current process/eventlet/gevent/thread pool.
     See :class:`celery.concurrency.base.BasePool`.
 
+.. _extending-consumer-timer:
+
 .. attribute:: timer
 
     :class:`Timer <celery.utils.timer2.Schedule` used to schedule functions.
+
+.. _extending-consumer-heart:
 
 .. attribute:: heart
 
@@ -380,6 +475,8 @@ Attributes
         class Step(bootsteps.StartStopStep):
             requires = ('celery.worker.consumer:Heart', )
 
+.. _extending-consumer-task_consumer:
+
 .. attribute:: task_consumer
 
     The :class:`kombu.Consumer` object used to consume task messages.
@@ -389,7 +486,9 @@ Attributes
     .. code-block:: python
 
         class Step(bootsteps.StartStopStep):
-            requires = ('celery.worker.consumer:Heart', )
+            requires = ('celery.worker.consumer:Tasks',)
+
+.. _extending-consumer-strategies:
 
 .. attribute:: strategies
 
@@ -409,8 +508,9 @@ Attributes
     .. code-block:: python
 
         class Step(bootsteps.StartStopStep):
-            requires = ('celery.worker.consumer:Heart', )
+            requires = ('celery.worker.consumer:Tasks',)
 
+.. _extending-consumer-task_buckets:
 
 .. attribute:: task_buckets
 
@@ -425,6 +525,8 @@ Attributes
     two methods above.
 
     .. _`token bucket algorithm`: http://en.wikipedia.org/wiki/Token_bucket
+
+.. _extending_consumer-qos:
 
 .. attribute:: qos
 

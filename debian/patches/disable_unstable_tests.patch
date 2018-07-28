@@ -1,4 +1,4 @@
-From cbc6f0026f8e7cd0c24c37f15b1e50e13d4889ec Mon Sep 17 00:00:00 2001
+From 472b1f1fbf39b6bfb688636cd0eda7bba28cd708 Mon Sep 17 00:00:00 2001
 From: Michael Fladischer <fladi@debian.org>
 Date: Thu, 8 Oct 2015 08:37:04 -0700
 Subject: Disable time-sensitive test

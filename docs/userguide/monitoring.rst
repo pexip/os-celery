@@ -188,16 +188,16 @@ Features
 
 - Real-time monitoring using Celery Events
 
-    - Task progress and history.
+    - Task progress and history
     - Ability to show task details (arguments, start time, runtime, and more)
     - Graphs and statistics
 
 - Remote Control
 
-    - View worker status and statistics.
-    - Shutdown and restart worker instances.
-    - Control worker pool size and autoscale settings.
-    - View and modify the queues a worker instance consumes from.
+    - View worker status and statistics
+    - Shutdown and restart worker instances
+    - Control worker pool size and autoscale settings
+    - View and modify the queues a worker instance consumes from
     - View currently running tasks
     - View scheduled tasks (ETA/countdown)
     - View reserved and revoked tasks
@@ -255,6 +255,11 @@ Then, you can visit flower in your web browser :
 
     $ open http://localhost:5555
 
+Flower has many more features than are detailed here, including
+authorization options. Check out the `official documentation`_ for more
+information.
+
+.. _official documentation: http://flower.readthedocs.org/en/latest/
 
 
 .. _monitoring-celeryev:

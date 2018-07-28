@@ -4,8 +4,6 @@ import logging
 import os
 import sys
 
-from functools import wraps
-
 from billiard import current_process
 from kombu import Exchange, Queue
 
@@ -24,7 +22,7 @@ from celery.tests.case import (
     AppCase,
     Mock,
     SkipTest,
-    WhateverIO,
+    disable_stdouts,
     patch,
     skip_if_pypy,
     skip_if_jython,
@@ -38,25 +36,6 @@ class WorkerAppCase(AppCase):
     def tearDown(self):
         super(WorkerAppCase, self).tearDown()
         trace.reset_worker_optimizations()
-
-
-def disable_stdouts(fun):
-
-    @wraps(fun)
-    def disable(*args, **kwargs):
-        prev_out, prev_err = sys.stdout, sys.stderr
-        prev_rout, prev_rerr = sys.__stdout__, sys.__stderr__
-        sys.stdout = sys.__stdout__ = WhateverIO()
-        sys.stderr = sys.__stderr__ = WhateverIO()
-        try:
-            return fun(*args, **kwargs)
-        finally:
-            sys.stdout = prev_out
-            sys.stderr = prev_err
-            sys.__stdout__ = prev_rout
-            sys.__stderr__ = prev_rerr
-
-    return disable
 
 
 class Worker(cd.Worker):

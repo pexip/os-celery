@@ -1,4 +1,4 @@
-From 85c83417637abeb0000bae48d84f63ff28692a5b Mon Sep 17 00:00:00 2001
+From fa042fe5c3a65d6d2eee7270d7c5c3cb413ef2ed Mon Sep 17 00:00:00 2001
 From: Michael Fladischer <fladi@debian.org>
 Date: Thu, 8 Oct 2015 08:37:03 -0700
 Subject: use local objects.inv where possible
@@ -16,7 +16,7 @@ Patch-Name: intersphinx.patch
  1 file changed, 17 insertions(+), 7 deletions(-)
 
 diff --git a/docs/conf.py b/docs/conf.py
-index 815819e..c7f62f7 100644
+index 551e7a6..b2722d8 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
 @@ -75,13 +75,23 @@ unused_docs = [

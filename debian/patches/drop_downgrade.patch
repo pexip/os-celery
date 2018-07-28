@@ -1,4 +1,4 @@
-From cd840962cd287350d34263441ea2bbb608330c4d Mon Sep 17 00:00:00 2001
+From 77606317078a5e1029eff0f522581b0250d6b38f Mon Sep 17 00:00:00 2001
 From: Michael Fladischer <fladi@debian.org>
 Date: Thu, 8 Oct 2015 08:37:01 -0700
 Subject: Remove upstream detection of installed celery

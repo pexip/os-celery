@@ -318,7 +318,7 @@ the `terminate` option is set.
     a task is stuck.  It's not for terminating the task,
     it's for terminating the process that is executing the task, and that
     process may have already started processing another task at the point
-    when the signal is sent, so for this rason you must never call this
+    when the signal is sent, so for this reason you must never call this
     programatically.
 
 If `terminate` is set the worker child process processing the task
@@ -628,8 +628,8 @@ even other options::
 
 .. control:: cancel_consumer
 
-Queues: Cancelling consumers
-----------------------------
+Queues: Canceling consumers
+---------------------------
 
 You can cancel a consumer by queue name using the :control:`cancel_consumer`
 control command.
@@ -700,7 +700,7 @@ pool support: *prefork, eventlet, gevent, threads, solo*
 
 Starting :program:`celery worker` with the :option:`--autoreload` option will
 enable the worker to watch for file system changes to all imported task
-modules imported (and also any non-task modules added to the
+modules (and also any non-task modules added to the
 :setting:`CELERY_IMPORTS` setting or the :option:`-I|--include` option).
 
 This is an experimental feature intended for use in development only,
@@ -887,7 +887,7 @@ You can get a list of tasks waiting to be scheduled by using
 Dump of reserved tasks
 ----------------------
 
-Reserved tasks are tasks that has been received, but is still waiting to be
+Reserved tasks are tasks that have been received, but are still waiting to be
 executed.
 
 You can get a list of these using

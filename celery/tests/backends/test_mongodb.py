@@ -7,11 +7,11 @@ from pickle import loads, dumps
 
 from celery import states
 from celery.backends import mongodb as module
-from celery.backends.mongodb import MongoBackend, Bunch, pymongo
+from celery.backends.mongodb import MongoBackend, pymongo
 from celery.exceptions import ImproperlyConfigured
 from celery.tests.case import (
     AppCase, MagicMock, Mock, SkipTest, ANY,
-    depends_on_current_app, patch, sentinel,
+    depends_on_current_app, disable_stdouts, patch, sentinel,
 )
 
 COLLECTION = 'taskmeta_celery'
@@ -26,6 +26,17 @@ MONGODB_COLLECTION = 'collection1'
 
 class test_MongoBackend(AppCase):
 
+    default_url = 'mongodb://uuuu:pwpw@hostname.dom/database'
+    replica_set_url = (
+        'mongodb://uuuu:pwpw@hostname.dom,'
+        'hostname.dom/database?replicaSet=rs'
+    )
+    sanitized_default_url = 'mongodb://uuuu:**@hostname.dom/database'
+    sanitized_replica_set_url = (
+        'mongodb://uuuu:**@hostname.dom/,'
+        'hostname.dom/database?replicaSet=rs'
+    )
+
     def setup(self):
         if pymongo is None:
             raise SkipTest('pymongo is not installed.')
@@ -36,18 +47,13 @@ class test_MongoBackend(AppCase):
         R['Binary'], module.Binary = module.Binary, Mock()
         R['datetime'], datetime.datetime = datetime.datetime, Mock()
 
-        self.backend = MongoBackend(app=self.app)
+        self.backend = MongoBackend(app=self.app, url=self.default_url)
 
     def teardown(self):
         MongoBackend.encode = self._reset['encode']
         MongoBackend.decode = self._reset['decode']
         module.Binary = self._reset['Binary']
         datetime.datetime = self._reset['datetime']
-
-    def test_Bunch(self):
-        x = Bunch(foo='foo', bar=2)
-        self.assertEqual(x.foo, 'foo')
-        self.assertEqual(x.bar, 2)
 
     def test_init_no_mongodb(self):
         prev, module.pymongo = module.pymongo, None
@@ -335,31 +341,26 @@ class test_MongoBackend(AppCase):
                 'auto_start_request': False
             })
 
-    @patch('celery.backends.mongodb.detect_environment')
-    def test_prepare_client_options_for_ver_2_with_gevent(self, m_detect_env):
-        m_detect_env.return_value = 'gevent'
-        with patch('pymongo.version_tuple', new=(2, 6, 3)):
-            options = self.backend._prepare_client_options()
-            self.assertDictEqual(options, {
-                'max_pool_size': self.backend.max_pool_size,
-                'auto_start_request': False,
-                'use_greenlets': True
-            })
+    def test_as_uri_include_password(self):
+        self.assertEqual(self.backend.as_uri(True), self.default_url)
 
-    @patch('celery.backends.mongodb.detect_environment')
-    def test_prepare_client_options_for_ver_3(self, m_detect_env):
-        m_detect_env.return_value = 'default'
-        with patch('pymongo.version_tuple', new=(3, 0, 3)):
-            options = self.backend._prepare_client_options()
-            self.assertDictEqual(options, {
-                'maxPoolSize': self.backend.max_pool_size
-            })
+    def test_as_uri_exclude_password(self):
+        self.assertEqual(self.backend.as_uri(), self.sanitized_default_url)
 
-    @patch('celery.backends.mongodb.detect_environment')
-    def test_prepare_client_options_for_ver_3_with_gevent(self, m_detect_env):
-        m_detect_env.return_value = 'gevent'
-        with patch('pymongo.version_tuple', new=(3, 0, 3)):
-            options = self.backend._prepare_client_options()
-            self.assertDictEqual(options, {
-                'maxPoolSize': self.backend.max_pool_size
-            })
+    def test_as_uri_include_password_replica_set(self):
+        backend = MongoBackend(app=self.app, url=self.replica_set_url)
+        self.assertEqual(backend.as_uri(True), self.replica_set_url)
+
+    def test_as_uri_exclude_password_replica_set(self):
+        backend = MongoBackend(app=self.app, url=self.replica_set_url)
+        self.assertEqual(backend.as_uri(), self.sanitized_replica_set_url)
+
+    @disable_stdouts
+    def test_regression_worker_startup_info(self):
+        self.app.conf.result_backend = (
+            'mongodb://user:password@host0.com:43437,host1.com:43437'
+            '/work4us?replicaSet=rs&ssl=true'
+        )
+        worker = self.app.Worker()
+        worker.on_start()
+        self.assertTrue(worker.startup_info())

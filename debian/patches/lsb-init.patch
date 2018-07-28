@@ -1,4 +1,4 @@
-From 0e7ca21f39a76cc231dbc37e9aaeb10d3cc6e428 Mon Sep 17 00:00:00 2001
+From d7b31c98abd087532b40df2eb9e4b81c0b13feb9 Mon Sep 17 00:00:00 2001
 From: Michael Fladischer <fladi@debian.org>
 Date: Thu, 8 Oct 2015 08:37:02 -0700
 Subject: LSB compliant headers, status actions and ENABLED variable
@@ -16,7 +16,7 @@ Patch-Name: lsb-init.patch
  2 files changed, 23 insertions(+)
 
 diff --git a/extra/generic-init.d/celerybeat b/extra/generic-init.d/celerybeat
-index fb31ca2..08bfbe4 100755
+index 2db4e9a..b6287ad 100755
 --- a/extra/generic-init.d/celerybeat
 +++ b/extra/generic-init.d/celerybeat
 @@ -15,11 +15,15 @@
@@ -58,7 +58,7 @@ index fb31ca2..08bfbe4 100755
  CELERYBEAT=${CELERYBEAT:-$DEFAULT_CELERYBEAT}
  CELERYBEAT_LOG_LEVEL=${CELERYBEAT_LOG_LEVEL:-${CELERYBEAT_LOGLEVEL:-$DEFAULT_LOG_LEVEL}}
 diff --git a/extra/generic-init.d/celeryd b/extra/generic-init.d/celeryd
-index 8cef473..509e639 100755
+index 362383d..6c2f866 100755
 --- a/extra/generic-init.d/celeryd
 +++ b/extra/generic-init.d/celeryd
 @@ -16,6 +16,7 @@
