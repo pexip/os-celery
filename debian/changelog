@@ -1,6 +1,7 @@
 celery (3.1.23-7pexip1) pexip; urgency=medium
 
   * New upstream release
+  * debian/patches/fix-chuid.patch: Drop: fixed upstream
 
  -- John-Mark Bell <jmb@pexip.com>  Sat, 28 Jul 2018 22:39:12 +0100
 
