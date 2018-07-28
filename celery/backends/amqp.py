@@ -200,7 +200,7 @@ class AMQPBackend(BaseBackend):
 
         def callback(meta, message):
             if meta['status'] in states.READY_STATES:
-                results[meta['task_id']] = meta
+                results[meta['task_id']] = self.meta_from_decoded(meta)
 
         consumer.callbacks[:] = [callback]
         time_start = now()
@@ -300,6 +300,9 @@ class AMQPBackend(BaseBackend):
     def delete_group(self, group_id):
         raise NotImplementedError(
             'delete_group is not supported by this backend.')
+
+    def as_uri(self, include_password=True):
+        return 'amqp://'
 
     def __reduce__(self, args=(), kwargs={}):
         kwargs.update(

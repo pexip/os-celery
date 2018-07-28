@@ -8,6 +8,203 @@ This document contains change notes for bugfix releases in the 3.1.x series
 (Cipater), please see :ref:`whatsnew-3.1` for an overview of what's
 new in Celery 3.1.
 
+.. _version-3.1.23:
+
+3.1.23
+======
+:release-date: 2016-03-09 06:00 P.M PST
+:release-by: Ask Solem
+
+- **Programs**: Last release broke support for the ``--hostnmame`` argument
+  to :program:`celery multi` and :program:`celery worker --detach`
+  (Issue #3103).
+
+- **Results**: MongoDB result backend could crash the worker at startup
+  if not configured using an URL.
+
+.. _version-3.1.22:
+
+3.1.22
+======
+:release-date: 2016-03-07 01:30 P.M PST
+:release-by: Ask Solem
+
+- **Programs**: The worker would crash immediately on startup on
+  ``backend.as_uri()`` when using some result backends (Issue #3094).
+
+- **Programs**: :program:`celery multi`/:program:`celery worker --detach`
+  would create an extraneous logfile including literal formats (e.g. ``%I``)
+  in the filename (Issue #3096).
+
+.. _version-3.1.21:
+
+3.1.21
+======
+:release-date: 2016-03-04 11:16 A.M PST
+:release-by: Ask Solem
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.34 <kombu:version-3.0.34>`.
+
+    - Now depends on :mod:`billiard` 3.3.0.23.
+
+- **Prefork pool**: Fixes 100% CPU loop on Linux epoll (Issue #1845).
+
+    Also potential fix for: Issue #2142, Issue #2606
+
+- **Prefork pool**: Fixes memory leak related to processes exiting
+  (Issue #2927).
+
+- **Worker**: Fixes crash at startup when trying to censor passwords
+  in MongoDB and Cache result backend URLs (Issue #3079, Issue #3045,
+  Issue #3049, Issue #3068, Issue #3073).
+
+    Fix contributed by Maxime Verger.
+
+- **Task**: An exception is now raised if countdown/expires is less
+  than -2147483648 (Issue #3078).
+
+- **Programs**: :program:`celery shell --ipython` now compatible with newer
+  IPython versions.
+
+- **Programs**: The DuplicateNodeName warning emitted by inspect/control
+  now includes a list of the node names returned.
+
+    Contributed by Sebastian Kalinowski.
+
+- **Utils**: The ``.discard(item)`` method of
+  :class:`~celery.datastructures.LimitedSet` did not actually remove the item
+  (Issue #3087).
+
+    Fix contributed by Dave Smith.
+
+- **Worker**: Node name formatting now emits less confusing error message
+  for unmatched format keys (Issue #3016).
+
+- **Results**: amqp/rpc backends: Fixed deserialization of JSON exceptions
+  (Issue #2518).
+
+    Fix contributed by Allard Hoeve.
+
+- **Prefork pool**: The `process inqueue damaged` error message now includes
+  the original exception raised.
+
+- **Documentation**: Includes improvements by:
+
+    - Jeff Widman.
+
+.. _version-3.1.20:
+
+3.1.20
+======
+:release-date: 2016-01-22 06:50 P.M UTC
+:release-by: Ask Solem
+
+- **Requirements**
+
+    - Now depends on :ref:`Kombu 3.0.33 <kombu:version-3.0.33>`.
+
+    - Now depends on :mod:`billiard` 3.3.0.22.
+
+        Includes binary wheels for Microsoft Windows x86 and x86_64!
+
+- **Task**: Error emails now uses ``utf-8`` charset by default (Issue #2737).
+
+- **Task**: Retry now forwards original message headers (Issue #3017).
+
+- **Worker**: Bootsteps can now hook into ``on_node_join``/``leave``/``lost``.
+
+    See :ref:`extending-consumer-gossip` for an example.
+
+- **Events**: Fixed handling of DST timezones (Issue #2983).
+
+- **Results**: Redis backend stopped respecting certain settings.
+
+    Contributed by Jeremy Llewellyn.
+
+- **Results**: Database backend now properly supports JSON exceptions
+  (Issue #2441).
+
+- **Results**: Redis ``new_join`` did not properly call task errbacks on chord
+  error (Issue #2796).
+
+- **Results**: Restores Redis compatibility with redis-py < 2.10.0
+  (Issue #2903).
+
+- **Results**: Fixed rare issue with chord error handling (Issue #2409).
+
+- **Tasks**: Using queue-name values in :setting:`CELERY_ROUTES` now works
+  again (Issue #2987).
+
+- **General**: Result backend password now sanitized in report output
+  (Issue #2812, Issue #2004).
+
+- **Configuration**: Now gives helpful error message when the result backend
+  configuration points to a module, and not a class (Issue #2945).
+
+- **Results**: Exceptions sent by JSON serialized workers are now properly
+  handled by pickle configured workers.
+
+- **Programs**: ``celery control autoscale`` now works (Issue #2950).
+
+- **Programs**: ``celery beat --detached`` now runs after fork callbacks.
+
+- **General**: Fix for LRU cache implementation on Python 3.5 (Issue #2897).
+
+    Contributed by Dennis Brakhane.
+
+    Python 3.5's ``OrderedDict`` does not allow mutation while it is being
+    iterated over. This breaks "update" if it is called with a dict
+    larger than the maximum size.
+
+    This commit changes the code to a version that does not iterate over
+    the dict, and should also be a little bit faster.
+
+- **Init scripts**: The beat init script now properly reports service as down
+  when no pid file can be found.
+
+    Eric Zarowny
+
+- **Beat**: Added cleaning of corrupted scheduler files for some storage
+  backend errors (Issue #2985).
+
+    Fix contributed by Aleksandr Kuznetsov.
+
+- **Beat**: Now syncs the schedule even if the schedule is empty.
+
+    Fix contributed by Colin McIntosh.
+
+- **Supervisord**: Set higher process priority in supervisord example.
+
+    Contributed by George Tantiras.
+
+- **Documentation**: Includes improvements by:
+
+    - Bryson
+    - Caleb Mingle
+    - Christopher Martin
+    - Dieter Adriaenssens
+    - Jason Veatch
+    - Jeremy Cline
+    - Juan Rossi
+    - Kevin Harvey
+    - Kevin McCarthy
+    - Kirill Pavlov
+    - Marco Buttu
+    - Mayflower
+    - Mher Movsisyan
+    - Michael Floering
+    - michael-k
+    - Nathaniel Varona
+    - Rudy Attias
+    - Ryan Luckie
+    - Steven Parker
+    - squfrans
+    - Tadej Janež
+    - TakesxiSximada
+    - Tom S
+
 .. _version-3.1.19:
 
 3.1.19

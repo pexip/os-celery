@@ -374,6 +374,12 @@ class PersistentScheduler(Scheduler):
     def setup_schedule(self):
         try:
             self._store = self._open_schedule()
+            # In some cases there may be different errors from a storage
+            # backend for corrupted files. Example - DBPageNotFoundError
+            # exception from bsddb. In such case the file will be
+            # successfully opened but the error will be raised on first key
+            # retrieving.
+            self._store.keys()
         except Exception as exc:
             self._store = self._destroy_open_corrupted_schedule(exc)
 
@@ -476,6 +482,8 @@ class Service(object):
                     debug('beat: Waking up %s.',
                           humanize_seconds(interval, prefix='in '))
                     time.sleep(interval)
+                    if self.scheduler.should_sync():
+                        self.scheduler._do_sync()
         except (KeyboardInterrupt, SystemExit):
             self._is_shutdown.set()
         finally:

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """Distributed Task Queue"""
+# :copyright: (c) 2015 Ask Solem and individual contributors.
+#                 All rights # reserved.
+# :copyright: (c) 2012-2014 GoPivotal, Inc., All rights reserved.
 # :copyright: (c) 2009 - 2012 Ask Solem and individual contributors,
 #                 All rights reserved.
-# :copyright: (c) 2012-2014 GoPivotal, Inc., All rights reserved.
 # :license:   BSD (3 Clause), see LICENSE for more details.
 
 from __future__ import absolute_import
@@ -17,7 +19,7 @@ version_info_t = namedtuple(
 )
 
 SERIES = 'Cipater'
-VERSION = version_info_t(3, 1, 19, '', '')
+VERSION = version_info_t(3, 1, 23, '', '')
 __version__ = '{0.major}.{0.minor}.{0.micro}{0.releaselevel}'.format(VERSION)
 __author__ = 'Ask Solem'
 __contact__ = 'ask@celeryproject.org'

@@ -444,11 +444,11 @@ class AppCase(Case):
         assert sys.__stdout__
         assert sys.__stderr__
         this = self._get_test_name()
-        if isinstance(sys.stdout, LoggingProxy) or \
-                isinstance(sys.__stdout__, LoggingProxy):
+        if isinstance(sys.stdout, (LoggingProxy, Mock)) or \
+                isinstance(sys.__stdout__, (LoggingProxy, Mock)):
             raise RuntimeError(CASE_LOG_REDIRECT_EFFECT.format(this, 'stdout'))
-        if isinstance(sys.stderr, LoggingProxy) or \
-                isinstance(sys.__stderr__, LoggingProxy):
+        if isinstance(sys.stderr, (LoggingProxy, Mock)) or \
+                isinstance(sys.__stderr__, (LoggingProxy, Mock)):
             raise RuntimeError(CASE_LOG_REDIRECT_EFFECT.format(this, 'stderr'))
         backend = self.app.__dict__.get('backend')
         if backend is not None:
@@ -638,6 +638,7 @@ def mask_modules(*modnames):
 def override_stdouts():
     """Override `sys.stdout` and `sys.stderr` with `WhateverIO`."""
     prev_out, prev_err = sys.stdout, sys.stderr
+    prev_rout, prev_rerr = sys.__stdout__, sys.__stderr__
     mystdout, mystderr = WhateverIO(), WhateverIO()
     sys.stdout = sys.__stdout__ = mystdout
     sys.stderr = sys.__stderr__ = mystderr
@@ -645,8 +646,19 @@ def override_stdouts():
     try:
         yield mystdout, mystderr
     finally:
-        sys.stdout = sys.__stdout__ = prev_out
-        sys.stderr = sys.__stderr__ = prev_err
+        sys.stdout = prev_out
+        sys.stderr = prev_err
+        sys.__stdout__ = prev_rout
+        sys.__stderr__ = prev_rerr
+
+
+def disable_stdouts(fun):
+
+    @wraps(fun)
+    def disable(*args, **kwargs):
+        with override_stdouts():
+            return fun(*args, **kwargs)
+    return disable
 
 
 def _old_patch(module, name, mocked):
