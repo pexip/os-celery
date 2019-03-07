@@ -1,8 +1,10 @@
-drop_downgrade.patch
 lsb-init.patch
-intersphinx.patch
-disable_unstable_tests.patch
 privacy.patch
-0006-ci-Tests-passing-on-Python-3.5.patch
 0007-Set-shell-in-su-invocation.patch
-0008-Remove-bashisms-from-initd-scripts.patch
+0004-Disable-intershpinx-mapping-for-now.patch
+0005-Disable-pytest-3.3-log-capturing-to-avoid-changing-l.patch
+0006-Remove-upper-version-cap-for-pytest.patch
+0008-Python-3.7-compat-issues-4852.patch
+0008-Added-compatibility-with-python-3.7-4902.patch
+py37-skip-tests.diff
+0010-Relax-version-requirements-on-billiard.patch

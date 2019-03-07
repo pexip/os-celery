@@ -11,7 +11,7 @@ that everyone must add themselves here, and not be added
 by others, so it's currently incomplete waiting for everyone
 to add their names.
 
-The full list of authors can be found in docs/AUTHORS.txt.
+The list of authors added before the policy change can be found in docs/AUTHORS.txt.
 
 --
 
@@ -156,6 +156,7 @@ Antoine Legrand, 2014/01/09
 Pepijn de Vos, 2014/01/15
 Dan McGee, 2014/01/27
 Paul Kilgo, 2014/01/28
+Môshe van der Sterre, 2014/01/31
 Martin Davidsson, 2014/02/08
 Chris Clark, 2014/02/20
 Matthew Duggan, 2014/04/10
@@ -176,6 +177,7 @@ Nathan Van Gheem, 2014/10/28
 Gino Ledesma, 2014/10/28
 Thomas French, 2014/11/10
 Michael Permana, 2014/11/6
+William King, 2014/11/21
 Bert Vanderbauwhede, 2014/12/18
 John Anderson, 2014/12/27
 Luke Burden, 2015/01/24
@@ -197,3 +199,65 @@ Krzysztof Bujniewicz, 2015/10/21
 Sukrit Khera, 2015/10/26
 Dave Smith, 2015/10/27
 Dennis Brakhane, 2015/10/30
+Chris Harris, 2015/11/27
+Valentyn Klindukh, 2016/01/15
+Wayne Chang, 2016/01/15
+Mike Attwood, 2016/01/22
+David Harrigan, 2016/02/01
+Ahmet Demir, 2016/02/27
+Maxime Verger, 2016/02/29
+Alexander Oblovatniy, 2016/03/10
+Komu Wairagu, 2016/04/03
+Joe Sanford, 2016/04/11
+Takeshi Kanemoto, 2016/04/22
+Arthur Vuillard, 2016/04/22
+Colin McIntosh, 2016/04/26
+Jeremy Zafran, 2016/05/17
+Anand Reddy Pandikunta, 2016/06/18
+Adriano Martins de Jesus, 2016/06/22
+Kevin Richardson, 2016/06/29
+Andrew Stewart, 2016/07/04
+Xin Li, 2016/08/03
+Alli Witheford, 2016/09/29
+Alan Justino da Silva, 2016/10/14
+Marat Sharafutdinov, 2016/11/04
+Viktor Holmqvist, 2016/12/02
+Rick Wargo, 2016/12/02
+zhengxiaowai, 2016/12/07
+Michael Howitz, 2016/12/08
+Andreas Pelme, 2016/12/13
+Mike Chen, 2016/12/20
+Alejandro Pernin, 2016/12/23
+Yuval Shalev, 2016/12/27
+Morgan Doocy, 2017/01/02
+Arcadiy Ivanov, 2017/01/08
+Ryan Hiebert, 2017/01/20
+Jianjian Yu, 2017/04/09
+Brian May, 2017/04/10
+Dmytro Petruk, 2017/04/12
+Joey Wilhelm, 2017/04/12
+Yoichi Nakayama, 2017/04/25
+Simon Schmidt, 2017/05/19
+Anthony Lukach, 2017/05/23
+Samuel Dion-Girardeau, 2017/05/29
+Aydin Sen, 2017/06/14
+Vinod Chandru, 2017/07/11
+Preston Moore, 2017/06/18
+Nicolas Mota, 2017/08/10
+David Davis, 2017/08/11
+Martial Pageau, 2017/08/16
+Sammie S. Taunton, 2017/08/17
+Kxrr, 2017/08/18
+Mads Jensen, 2017/08/20
+Markus Kaiserswerth, 2017/08/30
+Andrew Wong, 2017/09/07
+Arpan Shah, 2017/09/12
+Tobias 'rixx' Kunze, 2017/08/20
+Mikhail Wolfson, 2017/12/11
+Alex Garel, 2018/01/04
+Régis Behmo 2018/01/20
+Igor Kasianov, 2018/01/20
+Derek Harland, 2018/02/15
+Chris Mitchell, 2018/02/27
+Josue Balandrano Coronel, 2018/05/24
+Tom Booth, 2018/07/06

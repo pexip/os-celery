@@ -10,15 +10,17 @@ _celery()
     prevp="${COMP_WORDS[COMP_CWORD-1]}"
     basep="${COMP_WORDS[1]}"
     opts="worker events beat shell multi amqp status
-          inspect control purge list migrate call result report"
+          inspect control purge list migrate call result
+          report upgrade flower graph logtool help"
     fargs="--app= --broker= --loader= --config= --version"
-    dopts="--detach --umask= --gid= --uid= --pidfile= --logfile= --loglevel="
+    dopts="--detach --umask= --gid= --uid= --pidfile=
+           --logfile= --loglevel= --executable="
     controlargs="--timeout --destination"
-    pools="prefork eventlet gevent threads solo"
+    pools="prefork eventlet gevent solo"
     loglevels="critical error warning info debug"
     in_opt=0
 
-    # find the current subcommand, store in basep'
+    # find the current sub-command, store in basep'
     for index in $(seq 1 $((${#COMP_WORDS[@]} - 2)))
     do
         basep=${COMP_WORDS[$index]}
@@ -72,8 +74,8 @@ _celery()
     worker)
         COMPREPLY=( $(compgen -W '--concurrency= --pool= --purge --logfile=
         --loglevel= --hostname= --beat --schedule= --scheduler= --statedb= --events
-        --time-limit= --soft-time-limit= --maxtasksperchild= --queues=
-        --include= --pidfile= --autoscale= --autoreload --no-execv $fargs' -- ${cur} ) )
+        --time-limit= --soft-time-limit= --max-tasks-per-child= --queues=
+        --include= --pidfile= --autoscale $fargs' -- ${cur} ) )
         return 0
         ;;
     inspect)

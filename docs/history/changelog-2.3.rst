@@ -11,7 +11,7 @@
 
 2.3.4
 =====
-:release-date: 2011-11-25 04:00 P.M GMT
+:release-date: 2011-11-25 04:00 p.m. GMT
 :release-by: Ask Solem
 
 .. _v234-security-fixes:
@@ -20,23 +20,24 @@ Security Fixes
 --------------
 
 * [Security: `CELERYSA-0001`_] Daemons would set effective id's rather than
-  real id's when the :option:`--uid`/:option:`--gid` arguments to
-  :program:`celery multi`, :program:`celeryd_detach`,
-  :program:`celery beat` and :program:`celery events` were used.
+  real id's when the :option:`--uid <celery --uid>`/
+  :option:`--gid <celery --gid>` arguments to :program:`celery multi`,
+  :program:`celeryd_detach`, :program:`celery beat` and
+  :program:`celery events` were used.
 
   This means privileges weren't properly dropped, and that it would
   be possible to regain supervisor privileges later.
 
 
 .. _`CELERYSA-0001`:
-    http://github.com/celery/celery/tree/master/docs/sec/CELERYSA-0001.txt
+    https://github.com/celery/celery/tree/master/docs/sec/CELERYSA-0001.txt
 
 Fixes
 -----
 
 * Backported fix for #455 from 2.4 to 2.3.
 
-* Statedb was not saved at shutdown.
+* StateDB wasn't saved at shutdown.
 
 * Fixes worker sometimes hanging when hard time limit exceeded.
 
@@ -45,22 +46,22 @@ Fixes
 
 2.3.3
 =====
-:release-date: 2011-16-09 05:00 P.M BST
+:release-date: 2011-16-09 05:00 p.m. BST
 :release-by: Mher Movsisyan
 
 * Monkey patching :attr:`sys.stdout` could result in the worker
-  crashing if the replacing object did not define :meth:`isatty`
+  crashing if the replacing object didn't define :meth:`isatty`
   (Issue #477).
 
-* ``CELERYD`` option in :file:`/etc/default/celeryd` should not
-  be used with generic init scripts.
+* ``CELERYD`` option in :file:`/etc/default/celeryd` shouldn't
+  be used with generic init-scripts.
 
 
 .. _version-2.3.2:
 
 2.3.2
 =====
-:release-date: 2011-10-07 05:00 P.M BST
+:release-date: 2011-10-07 05:00 p.m. BST
 :release-by: Ask Solem
 
 .. _v232-news:
@@ -73,7 +74,7 @@ News
     If you'd like to contribute to Celery you should read the
     :ref:`Contributing Gudie <contributing>`.
 
-    We are looking for contributors at all skill levels, so don't
+    We're looking for contributors at all skill levels, so don't
     hesitate!
 
 * Now depends on Kombu 1.3.1
@@ -82,7 +83,7 @@ News
 
     Available as ``task.request.hostname``.
 
-* It is now easier for app subclasses to extend how they are pickled.
+* It's now easier for app subclasses to extend how they're pickled.
     (see :class:`celery.app.AppPickler`).
 
 .. _v232-fixes:
@@ -90,13 +91,13 @@ News
 Fixes
 -----
 
-* `purge/discard_all` was not working correctly (Issue #455).
+* `purge/discard_all` wasn't working correctly (Issue #455).
 
 * The coloring of log messages didn't handle non-ASCII data well
   (Issue #427).
 
 * [Windows] the multiprocessing pool tried to import ``os.kill``
-  even though this is not available there (Issue #450).
+  even though this isn't available there (Issue #450).
 
 * Fixes case where the worker could become unresponsive because of tasks
   exceeding the hard time limit.
@@ -105,7 +106,7 @@ Fixes
 
 * ``ResultSet.iterate`` now returns results as they finish (Issue #459).
 
-    This was not the case previously, even though the documentation
+    This wasn't the case previously, even though the documentation
     states this was the expected behavior.
 
 * Retries will no longer be performed when tasks are called directly
@@ -117,20 +118,20 @@ Fixes
 
     growing and shrinking eventlet pools is still not supported.
 
-* py24 target removed from :file:`tox.ini`.
+* ``py24`` target removed from :file:`tox.ini`.
 
 
 .. _version-2.3.1:
 
 2.3.1
 =====
-:release-date: 2011-08-07 08:00 P.M BST
+:release-date: 2011-08-07 08:00 p.m. BST
 :release-by: Ask Solem
 
 Fixes
 -----
 
-* The :setting:`CELERY_AMQP_TASK_RESULT_EXPIRES` setting did not work,
+* The :setting:`CELERY_AMQP_TASK_RESULT_EXPIRES` setting didn't work,
   resulting in an AMQP related error about not being able to serialize
   floats while trying to publish task states (Issue #446).
 
@@ -138,8 +139,8 @@ Fixes
 
 2.3.0
 =====
-:release-date: 2011-08-05 12:00 P.M BST
-:tested: cPython: 2.5, 2.6, 2.7; PyPy: 1.5; Jython: 2.5.2
+:release-date: 2011-08-05 12:00 p.m. BST
+:tested: CPython: 2.5, 2.6, 2.7; PyPy: 1.5; Jython: 2.5.2
 :release-by: Ask Solem
 
 .. _v230-important:
@@ -151,10 +152,10 @@ Important Notes
 
 * Results are now disabled by default.
 
-    The AMQP backend was not a good default because often the users were
+    The AMQP backend wasn't a good default because often the users were
     not consuming the results, resulting in thousands of queues.
 
-    While the queues can be configured to expire if left unused, it was not
+    While the queues can be configured to expire if left unused, it wasn't
     possible to enable this by default because this was only available in
     recent RabbitMQ versions (2.1.1+)
 
@@ -163,8 +164,8 @@ Important Notes
     of any common pitfalls with the particular backend.
 
     The default backend is now a dummy backend
-    (:class:`celery.backends.base.DisabledBackend`).  Saving state is simply an
-    noop operation, and AsyncResult.wait(), .result, .state, etc. will raise
+    (:class:`celery.backends.base.DisabledBackend`). Saving state is simply an
+    no-op, and AsyncResult.wait(), .result, .state, etc. will raise
     a :exc:`NotImplementedError` telling the user to configure the result backend.
 
     For help choosing a backend please see :ref:`task-result-backends`.
@@ -172,18 +173,18 @@ Important Notes
     If you depend on the previous default which was the AMQP backend, then
     you have to set this explicitly before upgrading::
 
-        CELERY_RESULT_BACKEND = "amqp"
+        CELERY_RESULT_BACKEND = 'amqp'
 
     .. note::
 
-        For django-celery users the default backend is still ``database``,
-        and results are not disabled by default.
+        For :pypi:`django-celery` users the default backend is
+        still ``database``, and results are not disabled by default.
 
-* The Debian init scripts have been deprecated in favor of the generic-init.d
-  init scripts.
+* The Debian init-scripts have been deprecated in favor of the generic-init.d
+  init-scripts.
 
-    In addition generic init scripts for celerybeat and celeryev has been
-    added.
+    In addition generic init-scripts for ``celerybeat`` and ``celeryev`` has
+    been added.
 
 .. _v230-news:
 
@@ -192,7 +193,7 @@ News
 
 * Automatic connection pool support.
 
-    The pool is used by everything that requires a broker connection.  For
+    The pool is used by everything that requires a broker connection, for
     example calling tasks, sending broadcast commands, retrieving results
     with the AMQP result backend, and so on.
 
@@ -214,7 +215,7 @@ News
 * Introducing Chords (taskset callbacks).
 
     A chord is a task that only executes after all of the tasks in a taskset
-    has finished executing.  It's a fancy term for "taskset callbacks"
+    has finished executing. It's a fancy term for "taskset callbacks"
     adopted from
     `Cω  <http://research.microsoft.com/en-us/um/cambridge/projects/comega/>`_).
 
@@ -250,7 +251,7 @@ News
     at runtime using the :func:`time_limit` remote control command::
 
         >>> from celery.task import control
-        >>> control.time_limit("tasks.sleeptask",
+        >>> control.time_limit('tasks.sleeptask',
         ...                    soft=60, hard=120, reply=True)
         [{'worker1.example.com': {'ok': 'time limits set successfully'}}]
 
@@ -259,7 +260,7 @@ News
     .. note::
 
         Soft time limits will still not work on Windows or other platforms
-        that do not have the ``SIGUSR1`` signal.
+        that don't have the ``SIGUSR1`` signal.
 
 * Redis backend configuration directive names changed to include the
    ``CELERY_`` prefix.
@@ -281,21 +282,21 @@ News
 
 * multi: now supports "pass through" options.
 
-    Pass through options makes it easier to use celery without a
+    Pass through options makes it easier to use Celery without a
     configuration file, or just add last-minute options on the command
     line.
 
     Example use:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ celery multi start 4  -c 2  -- broker.host=amqp.example.com \
                                          broker.vhost=/               \
                                          celery.disable_rate_limits=yes
 
-* celerybeat: Now retries establishing the connection (Issue #419).
+* ``celerybeat``: Now retries establishing the connection (Issue #419).
 
-* celeryctl: New ``list bindings`` command.
+* ``celeryctl``: New ``list bindings`` command.
 
     Lists the current or all available bindings, depending on the
     broker transport used.
@@ -314,7 +315,7 @@ News
 * ``events.default_dispatcher()``: Context manager to easily obtain
   an event dispatcher instance using the connection pool.
 
-* Import errors in the configuration module will not be silenced anymore.
+* Import errors in the configuration module won't be silenced anymore.
 
 * ResultSet.iterate:  Now supports the ``timeout``, ``propagate`` and
   ``interval`` arguments.
@@ -330,7 +331,7 @@ News
 * Added ``TaskSetResult.delete()``, which will delete a previously
   saved taskset result.
 
-* Celerybeat now syncs every 3 minutes instead of only at
+* ``celerybeat`` now syncs every 3 minutes instead of only at
   shutdown (Issue #382).
 
 * Monitors now properly handles unknown events, so user-defined events
@@ -352,7 +353,7 @@ News
 Fixes
 -----
 
-* celeryev was trying to create the pidfile twice.
+* ``celeryev`` was trying to create the pidfile twice.
 
 * celery.contrib.batches: Fixed problem where tasks failed
   silently (Issue #393).
@@ -363,7 +364,7 @@ Fixes
 * ``CELERY_TASK_ERROR_WHITE_LIST`` is now properly initialized
   in all loaders.
 
-* celeryd_detach now passes through command line configuration.
+* ``celeryd_detach`` now passes through command line configuration.
 
 * Remote control command ``add_consumer`` now does nothing if the
   queue is already being consumed from.

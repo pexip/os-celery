@@ -6,13 +6,12 @@ Installation
 You can install Celery either via the Python Package Index (PyPI)
 or from source.
 
-To install using `pip`,::
+To install using :command:`pip`:
+
+
+.. code-block:: console
 
     $ pip install -U Celery
-
-To install using `easy_install`,::
-
-    $ easy_install -U Celery
 
 .. _bundles:
 
@@ -22,11 +21,12 @@ Bundles
 Celery also defines a group of bundles that can be used
 to install Celery and the dependencies for a given feature.
 
-You can specify these in your requirements or on the ``pip`` comand-line
-by using brackets.  Multiple bundles can be specified by separating them by
-commas.
+You can specify these in your requirements or on the :command:`pip`
+command-line by using brackets. Multiple bundles can be specified by
+separating them by commas.
 
-.. code-block:: bash
+
+.. code-block:: console
 
     $ pip install "celery[librabbitmq]"
 
@@ -37,83 +37,95 @@ The following bundles are available:
 Serializers
 ~~~~~~~~~~~
 
-:celery[auth]:
-    for using the auth serializer.
+:``celery[auth]``:
+    for using the ``auth`` security serializer.
 
-:celery[msgpack]:
+:``celery[msgpack]``:
     for using the msgpack serializer.
 
-:celery[yaml]:
+:``celery[yaml]``:
     for using the yaml serializer.
 
 Concurrency
 ~~~~~~~~~~~
 
-:celery[eventlet]:
-    for using the eventlet pool.
+:``celery[eventlet]``:
+    for using the :pypi:`eventlet` pool.
 
-:celery[gevent]:
-    for using the gevent pool.
-
-:celery[threads]:
-    for using the thread pool.
+:``celery[gevent]``:
+    for using the :pypi:`gevent` pool.
 
 Transports and Backends
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-:celery[librabbitmq]:
+:``celery[librabbitmq]``:
     for using the librabbitmq C library.
 
-:celery[redis]:
+:``celery[redis]``:
     for using Redis as a message transport or as a result backend.
 
-:celery[mongodb]:
-    for using MongoDB as a message transport (*experimental*),
-    or as a result backend (*supported*).
-
-:celery[sqs]:
+:``celery[sqs]``:
     for using Amazon SQS as a message transport (*experimental*).
 
-:celery[memcache]:
-    for using memcached as a result backend.
+:``celery[tblib]``:
+    for using the :setting:`task_remote_tracebacks` feature.
 
-:celery[cassandra]:
-    for using Apache Cassandra as a result backend.
+:``celery[memcache]``:
+    for using Memcached as a result backend (using :pypi:`pylibmc`)
 
-:celery[couchdb]:
-    for using CouchDB as a message transport (*experimental*).
+:``celery[pymemcache]``:
+    for using Memcached as a result backend (pure-Python implementation).
 
-:celery[couchbase]:
-    for using CouchBase as a result backend.
+:``celery[cassandra]``:
+    for using Apache Cassandra as a result backend with DataStax driver.
 
-:celery[beanstalk]:
-    for using Beanstalk as a message transport (*experimental*).
+:``celery[couchbase]``:
+    for using Couchbase as a result backend.
 
-:celery[zookeeper]:
+:``celery[elasticsearch]``:
+    for using Elasticsearch as a result backend.
+
+:``celery[riak]``:
+    for using Riak as a result backend.
+
+:``celery[dynamodb]``:
+    for using AWS DynamoDB as a result backend.
+
+:``celery[zookeeper]``:
     for using Zookeeper as a message transport.
 
-:celery[zeromq]:
-    for using ZeroMQ as a message transport (*experimental*).
+:``celery[sqlalchemy]``:
+    for using SQLAlchemy as a result backend (*supported*).
 
-:celery[sqlalchemy]:
-    for using SQLAlchemy as a message transport (*experimental*),
-    or as a result backend (*supported*).
-
-:celery[pyro]:
+:``celery[pyro]``:
     for using the Pyro4 message transport (*experimental*).
 
-:celery[slmq]:
+:``celery[slmq]``:
     for using the SoftLayer Message Queue transport (*experimental*).
+
+:``celery[consul]``:
+    for using the Consul.io Key/Value store as a message transport or result backend (*experimental*).
+
+:``celery[django]``:
+    specifies the lowest version possible for Django support.
+
+    You should probably not use this in your requirements, it's here
+    for informational purposes only.
+
 
 .. _celery-installing-from-source:
 
 Downloading and installing from source
 --------------------------------------
 
-Download the latest version of Celery from
-http://pypi.python.org/pypi/celery/
+Download the latest version of Celery from PyPI:
 
-You can install it by doing the following,::
+https://pypi.org/project/celery/
+
+You can install it by doing the following,:
+
+
+.. code-block:: console
 
     $ tar xvfz celery-0.0.0.tar.gz
     $ cd celery-0.0.0
@@ -121,7 +133,7 @@ You can install it by doing the following,::
     # python setup.py install
 
 The last command must be executed as a privileged user if
-you are not currently using a virtualenv.
+you aren't currently using a virtualenv.
 
 .. _celery-installing-from-git:
 
@@ -132,17 +144,21 @@ With pip
 ~~~~~~~~
 
 The Celery development version also requires the development
-versions of ``kombu``, ``amqp`` and ``billiard``.
+versions of :pypi:`kombu`, :pypi:`amqp`, :pypi:`billiard`, and :pypi:`vine`.
 
 You can install the latest snapshot of these using the following
-pip commands::
+pip commands:
+
+
+.. code-block:: console
 
     $ pip install https://github.com/celery/celery/zipball/master#egg=celery
     $ pip install https://github.com/celery/billiard/zipball/master#egg=billiard
     $ pip install https://github.com/celery/py-amqp/zipball/master#egg=amqp
     $ pip install https://github.com/celery/kombu/zipball/master#egg=kombu
+    $ pip install https://github.com/celery/vine/zipball/master#egg=vine
 
 With git
 ~~~~~~~~
 
-Please the Contributing section.
+Please see the :ref:`Contributing <contributing>` section.

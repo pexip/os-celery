@@ -12,10 +12,15 @@ Using Celery with Django
     Previous versions of Celery required a separate library to work with Django,
     but since 3.1 this is no longer the case. Django is supported out of the
     box now so this document only contains a basic way to integrate Celery and
-    Django.  You will use the same API as non-Django users so it's recommended that
-    you read the :ref:`first-steps` tutorial
-    first and come back to this tutorial.  When you have a working example you can
+    Django. You'll use the same API as non-Django users so you're recommended
+    to read the :ref:`first-steps` tutorial
+    first and come back to this tutorial. When you have a working example you can
     continue to the :ref:`next-steps` guide.
+
+.. note::
+
+    Celery 4.0 supports Django 1.8 and newer versions. Please use Celery 3.1
+    for versions older than Django 1.8.
 
 To use Celery with your Django project you must first define
 an instance of the Celery library (called an "app")
@@ -23,10 +28,11 @@ an instance of the Celery library (called an "app")
 If you have a modern Django project layout like::
 
     - proj/
-      - proj/__init__.py
-      - proj/settings.py
-      - proj/urls.py
-    - manage.py
+      - manage.py
+      - proj/
+        - __init__.py
+        - settings.py
+        - urls.py
 
 then the recommended way is to create a new `proj/proj/celery.py` module
 that defines the Celery instance:
@@ -36,7 +42,7 @@ that defines the Celery instance:
 .. literalinclude:: ../../examples/django/proj/celery.py
 
 Then you need to import this app in your :file:`proj/proj/__init__.py`
-module.  This ensures that the app is loaded when Django starts
+module. This ensures that the app is loaded when Django starts
 so that the ``@shared_task`` decorator (mentioned later) will use it:
 
 :file:`proj/proj/__init__.py`:
@@ -49,72 +55,78 @@ both the app and tasks, like in the :ref:`tut-celery` tutorial.
 
 Let's break down what happens in the first module,
 first we import absolute imports from the future, so that our
-``celery.py`` module will not clash with the library:
+``celery.py`` module won't clash with the library:
 
 .. code-block:: python
 
     from __future__ import absolute_import
 
-Then we set the default :envvar:`DJANGO_SETTINGS_MODULE` 
+Then we set the default :envvar:`DJANGO_SETTINGS_MODULE` environment variable
 for the :program:`celery` command-line program:
 
 .. code-block:: python
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proj.settings')
 
-Specifying the settings here means the ``celery`` command line program
-will know where your Django project is.  This statement must always appear before
-the app instance is created, which is what we do next:
+You don't need this line, but it saves you from always passing in the
+settings module to the ``celery`` program. It must always come before
+creating the app instances, as is what we do next:
 
 .. code-block:: python
 
     app = Celery('proj')
 
-This is your instance of the library, you can have many instances
+This is our instance of the library, you can have many instances
 but there's probably no reason for that when using Django.
 
 We also add the Django settings module as a configuration source
-for Celery.  This means that you don't have to use multiple
+for Celery. This means that you don't have to use multiple
 configuration files, and instead configure Celery directly
-from the Django settings.
-
-You can pass the object directly here, but using a string is better since
-then the worker doesn't have to serialize the object when using Windows
-or execv:
+from the Django settings; but you can also separate them if wanted.
 
 .. code-block:: python
 
-    app.config_from_object('django.conf:settings')
+    app.config_from_object('django.conf:settings', namespace='CELERY')
+
+The uppercase name-space means that all Celery configuration options
+must be specified in uppercase instead of lowercase, and start with
+``CELERY_``, so for example the :setting:`task_always_eager` setting
+becomes ``CELERY_TASK_ALWAYS_EAGER``, and the :setting:`broker_url`
+setting becomes ``CELERY_BROKER_URL``.
+
+You can pass the settings object directly instead, but using a string
+is better since then the worker doesn't have to serialize the object.
+The ``CELERY_`` namespace is also optional, but recommended (to
+prevent overlap with other Django settings).
 
 Next, a common practice for reusable apps is to define all tasks
 in a separate ``tasks.py`` module, and Celery does have a way to
-autodiscover these modules:
+auto-discover these modules:
 
 .. code-block:: python
 
-    app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+    app.autodiscover_tasks()
 
-With the line above Celery will automatically discover tasks in reusable
-apps if you follow the ``tasks.py`` convention::
+With the line above Celery will automatically discover tasks from all
+of your installed apps, following the ``tasks.py`` convention::
 
     - app1/
-        - app1/tasks.py
-        - app1/models.py
+        - tasks.py
+        - models.py
     - app2/
-        - app2/tasks.py
-        - app2/models.py
+        - tasks.py
+        - models.py
 
-This way you do not have to manually add the individual modules
-to the :setting:`CELERY_IMPORTS` setting.  The ``lambda`` so that the
-autodiscovery can happen only when needed, and so that importing your
-module will not evaluate the Django settings object.
+
+This way you don't have to manually add the individual modules
+to the :setting:`CELERY_IMPORTS <imports>` setting.
 
 Finally, the ``debug_task`` example is a task that dumps
-its own request information.  This is using the new ``bind=True`` task option
+its own request information. This is using the new ``bind=True`` task option
 introduced in Celery 3.1 to easily refer to the current task instance.
 
 Using the ``@shared_task`` decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 The tasks you write will probably live in reusable apps, and reusable
 apps cannot depend on the project itself, so you also cannot import your app
@@ -131,99 +143,89 @@ concrete app instance:
 .. seealso::
 
     You can find the full source code for the Django example project at:
-    https://github.com/celery/celery/tree/3.1/examples/django/
+    https://github.com/celery/celery/tree/master/examples/django/
 
-Using the Django ORM/Cache as a result backend.
------------------------------------------------
+.. admonition:: Relative Imports
 
-If you want to store task results in the Django database then
-you still need to install the ``django-celery`` library for that
-(alternatively you can use the SQLAlchemy result backend).
+    You have to be consistent in how you import the task module.
+    For example, if you have ``project.app`` in ``INSTALLED_APPS``, then you
+    must also import the tasks ``from project.app`` or else the names
+    of the tasks will end up being different.
 
-The ``django-celery`` library implements result backends using
-the Django ORM and the Django Cache frameworks.
+    See :ref:`task-naming-relative-imports`
 
-To use this extension in your project you need to follow these four steps:
+Extensions
+==========
 
-1. Install the ``django-celery`` library:
+.. _django-celery-results:
 
-    .. code-block:: bash
+``django-celery-results`` - Using the Django ORM/Cache as a result backend
+--------------------------------------------------------------------------
 
-        $ pip install django-celery
+The :pypi:`django-celery-results` extension provides result backends
+using either the Django ORM, or the Django Cache framework.
 
-2. Add ``djcelery`` to ``INSTALLED_APPS``.
+To use this with your project you need to follow these steps:
 
-3. Create the celery database tables.
+#. Install the :pypi:`django-celery-results` library:
 
-    This step will create the tables used to store results
-    when using the database result backend and the tables used
-    by the database periodic task scheduler.  You can skip
-    this step if you don't use these.
+    .. code-block:: console
 
-    If you are using south_ for schema migrations, you'll want to:
+        $ pip install django-celery-results
 
-    .. code-block:: bash
+#. Add ``django_celery_results`` to ``INSTALLED_APPS`` in your
+   Django project's :file:`settings.py`::
 
-        $ python manage.py migrate djcelery
+        INSTALLED_APPS = (
+            ...,
+            'django_celery_results',
+        )
 
-    For those who are not using south, a normal ``syncdb`` will work:
+   Note that there is no dash in the module name, only underscores.
 
-    .. code-block:: bash
+#. Create the Celery database tables by performing a database migrations:
 
-        $ python manage.py syncdb
+    .. code-block:: console
 
-4.  Configure celery to use the django-celery backend.
+        $ python manage.py migrate django_celery_results
 
-    For the database backend you must use:
+#. Configure Celery to use the :pypi:`django-celery-results` backend.
+
+    Assuming you are using Django's :file:`settings.py` to also configure
+    Celery, add the following settings:
 
     .. code-block:: python
 
-        app.conf.update(
-            CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
-        )
+        CELERY_RESULT_BACKEND = 'django-db'
 
     For the cache backend you can use:
 
     .. code-block:: python
 
-        app.conf.update(
-            CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
-        )
+        CELERY_RESULT_BACKEND = 'django-cache'
 
-    If you have connected Celery to your Django settings then you can
-    add this directly into your settings module (without the
-    ``app.conf.update`` part)
+``django-celery-beat`` - Database-backed Periodic Tasks with Admin interface.
+-----------------------------------------------------------------------------
 
-
-
-.. _south: http://pypi.python.org/pypi/South/
-
-.. admonition:: Relative Imports
-
-    You have to be consistent in how you import the task module, e.g. if
-    you have ``project.app`` in ``INSTALLED_APPS`` then you also
-    need to import the tasks ``from project.app`` or else the names
-    of the tasks will be different.
-
-    See :ref:`task-naming-relative-imports`
+See :ref:`beat-custom-schedulers` for more information.
 
 Starting the worker process
 ===========================
 
-In a production environment you will want to run the worker in the background
+In a production environment you'll want to run the worker in the background
 as a daemon - see :ref:`daemonizing` - but for testing and
 development it is useful to be able to start a worker instance by using the
-``celery worker`` manage command, much as you would use Django's runserver:
+:program:`celery worker` manage command, much as you'd use Django's
+:command:`manage.py runserver`:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ celery -A proj worker -l info
-
 
 For a complete listing of the command-line options available,
 use the help command:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ celery help
 
