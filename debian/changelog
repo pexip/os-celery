@@ -1,3 +1,10 @@
+celery (3.1.23-7pexip2) pexip; urgency=medium
+
+  * debian/patches/node_alive.patch: Add patch to handle EPERM
+    gracefully in node_alive()
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 22 Jul 2019 12:01:00 +0100
+
 celery (3.1.23-7pexip1) pexip; urgency=medium
 
   * New upstream release
