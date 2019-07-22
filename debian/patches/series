@@ -7,3 +7,4 @@ privacy.patch
 0007-Set-shell-in-su-invocation.patch
 0008-Remove-bashisms-from-initd-scripts.patch
 lsb-start.patch
+node_alive.patch
