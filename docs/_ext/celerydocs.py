@@ -1,3 +1,8 @@
+from __future__ import absolute_import, unicode_literals
+
+import sys
+import typing
+
 from docutils import nodes
 
 from sphinx.environment import NoUri
@@ -23,21 +28,22 @@ APPATTRS = {
     'signature': 'celery.canvas.Signature',
 }
 
-APPDIRECT = set([
+APPDIRECT = {
     'on_configure', 'on_after_configure', 'on_after_finalize',
     'set_current', 'set_default', 'close', 'on_init', 'start',
     'worker_main', 'task', 'gen_task_name', 'finalize',
     'add_defaults', 'config_from_object', 'config_from_envvar',
     'config_from_cmdline', 'setup_security', 'autodiscover_tasks',
     'send_task', 'connection', 'connection_or_acquire',
-    'producer_or_acquire', 'prepare_config', 'now', 'mail_admins',
+    'producer_or_acquire', 'prepare_config', 'now',
     'select_queues', 'either', 'bugreport', 'create_task_cls',
     'subclass_with_self', 'annotations', 'current_task', 'oid',
     'timezone', '__reduce_keys__', 'fixups', 'finalized', 'configured',
+    'add_periodic_task',
     'autofinalize', 'steps', 'user_options', 'main', 'clock',
-])
+}
 
-APPATTRS.update(dict((x, 'celery.Celery.{0}'.format(x)) for x in APPDIRECT))
+APPATTRS.update({x: 'celery.Celery.{0}'.format(x) for x in APPDIRECT})
 
 ABBRS = {
     'Celery': 'celery.Celery',
@@ -47,6 +53,16 @@ ABBR_EMPTY = {
     'exc': 'celery.exceptions',
 }
 DEFAULT_EMPTY = 'celery.Celery'
+
+
+if sys.version_info[0] < 3:
+    def bytes_if_py2(s):
+        if isinstance(s, unicode):
+            return s.encode()
+        return s
+else:
+    def bytes_if_py2(s):  # noqa
+        return s
 
 
 def typeify(S, type):
@@ -65,14 +81,16 @@ def shorten(S, newtarget, src_dict):
     return S
 
 
-def get_abbr(pre, rest, type):
+def get_abbr(pre, rest, type, orig=None):
     if pre:
         for d in APPATTRS, ABBRS:
             try:
                 return d[pre], rest, d
             except KeyError:
                 pass
-        raise KeyError(pre)
+        raise KeyError('Unknown abbreviation: {0} ({1})'.format(
+            '.'.join([pre, rest]) if orig is None else orig, type,
+        ))
     else:
         for d in APPATTRS, ABBRS:
             try:
@@ -83,6 +101,14 @@ def get_abbr(pre, rest, type):
 
 
 def resolve(S, type):
+    if '.' not in S:
+        try:
+            getattr(typing, S)
+        except AttributeError:
+            pass
+        else:
+            return 'typing.{0}'.format(S), None
+    orig = S
     if S.startswith('@'):
         S = S.lstrip('@-')
         try:
@@ -90,7 +116,7 @@ def resolve(S, type):
         except ValueError:
             pre, rest = '', S
 
-        target, rest, src = get_abbr(pre, rest, type)
+        target, rest, src = get_abbr(pre, rest, type, orig)
         return '.'.join([target, rest]) if rest else target, src
     return S, None
 
@@ -134,35 +160,32 @@ def maybe_resolve_abbreviations(app, env, node, contnode):
 
 
 def setup(app):
-    app.connect('missing-reference', maybe_resolve_abbreviations)
+    app.connect(
+        bytes_if_py2('missing-reference'),
+        maybe_resolve_abbreviations,
+    )
 
     app.add_crossref_type(
-        directivename='setting',
-        rolename='setting',
-        indextemplate='pair: %s; setting',
+        directivename=bytes_if_py2('sig'),
+        rolename=bytes_if_py2('sig'),
+        indextemplate=bytes_if_py2('pair: %s; sig'),
     )
     app.add_crossref_type(
-        directivename='sig',
-        rolename='sig',
-        indextemplate='pair: %s; sig',
+        directivename=bytes_if_py2('state'),
+        rolename=bytes_if_py2('state'),
+        indextemplate=bytes_if_py2('pair: %s; state'),
     )
     app.add_crossref_type(
-        directivename='state',
-        rolename='state',
-        indextemplate='pair: %s; state',
+        directivename=bytes_if_py2('control'),
+        rolename=bytes_if_py2('control'),
+        indextemplate=bytes_if_py2('pair: %s; control'),
     )
     app.add_crossref_type(
-        directivename='control',
-        rolename='control',
-        indextemplate='pair: %s; control',
+        directivename=bytes_if_py2('event'),
+        rolename=bytes_if_py2('event'),
+        indextemplate=bytes_if_py2('pair: %s; event'),
     )
-    app.add_crossref_type(
-        directivename='signal',
-        rolename='signal',
-        indextemplate='pair: %s; signal',
-    )
-    app.add_crossref_type(
-        directivename='event',
-        rolename='event',
-        indextemplate='pair: %s; event',
-    )
+
+    return {
+        'parallel_read_safe': True
+    }

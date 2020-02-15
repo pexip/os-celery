@@ -5,7 +5,7 @@ For asynchronous DNS lookups install the `dnspython` package:
     $ pip install dnspython
 
 Requires the `pybloom` module for the bloom filter which is used
-to ensure a lower chance of recrawling an URL previously seen.
+to ensure a lower chance of recrawling a URL previously seen.
 
 Since the bloom filter is not shared, but only passed as an argument
 to each subtask, it would be much better to have this as a centralized
@@ -18,23 +18,17 @@ up 2.9kB(!).
 We don't have to do compression manually, just set the tasks compression
 to "zlib", and the serializer to "pickle".
 
-
 """
-
-
+from __future__ import absolute_import, print_function, unicode_literals
 import re
-
+import requests
+from celery import task, group
+from eventlet import Timeout
+from pybloom import BloomFilter
 try:
     from urllib.parse import urlsplit
 except ImportError:
     from urlparse import urlsplit  # noqa
-
-import requests
-
-from celery import task, group
-from eventlet import Timeout
-
-from pybloom import BloomFilter
 
 # http://daringfireball.net/2009/11/liberal_regex_for_matching_urls
 url_regex = re.compile(
@@ -42,7 +36,7 @@ url_regex = re.compile(
 
 
 def domain(url):
-    """Return the domain part of an URL."""
+    """Return the domain part of a URL."""
     return urlsplit(url)[1].split(':')[0]
 
 
@@ -55,7 +49,7 @@ def crawl(url, seen=None):
     with Timeout(5, False):
         try:
             response = requests.get(url)
-        except Exception:
+        except requests.exception.RequestError:
             return
 
     location = domain(url)
@@ -68,4 +62,4 @@ def crawl(url, seen=None):
             seen.add(url)
 
     subtasks = group(crawl.s(url, seen) for url in wanted_urls)
-    subtasks()
+    subtasks.delay()

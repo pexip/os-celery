@@ -8,8 +8,8 @@
     :local:
     :depth: 1
 
-What is a Task Queue?
-=====================
+What's a Task Queue?
+====================
 
 Task queues are used as a mechanism to distribute work across threads or
 machines.
@@ -18,18 +18,19 @@ A task queue's input is a unit of work called a task. Dedicated worker
 processes constantly monitor task queues for new work to perform.
 
 Celery communicates via messages, usually using a broker
-to mediate between clients and workers.  To initiate a task, a client adds a
-message to the queue, which the broker then delivers to a worker.
+to mediate between clients and workers. To initiate a task the client adds a
+message to the queue, the broker then delivers that message to a worker.
 
 A Celery system can consist of multiple workers and brokers, giving way
 to high availability and horizontal scaling.
 
 Celery is written in Python, but the protocol can be implemented in any
-language.  So far there's RCelery_ for the Ruby programming language,
-node-celery_ for Node.js and a `PHP client`_. Language interoperability can also be achieved
-by :ref:`using webhooks <guide-webhooks>`.
+language. In addition to Python there's node-celery_ for Node.js,
+and a `PHP client`_.
 
-.. _RCelery: http://leapfrogdevelopment.github.com/rcelery/
+Language interoperability can also be achieved
+exposing an HTTP endpoint and having a task that requests it (webhooks).
+
 .. _`PHP client`: https://github.com/gjedeer/celery-php
 .. _node-celery: https://github.com/mher/node-celery
 
@@ -37,15 +38,24 @@ What do I need?
 ===============
 
 .. sidebar:: Version Requirements
-    :subtitle: Celery version 3.0 runs on
+    :subtitle: Celery version 4.0 runs on
 
-    - Python ❨2.5, 2.6, 2.7, 3.2, 3.3❩
-    - PyPy ❨1.8, 1.9❩
-    - Jython ❨2.5, 2.7❩.
+    - Python ❨2.7, 3.4, 3.5❩
+    - PyPy ❨5.4, 5.5❩
 
-    This is the last version to support Python 2.5,
-    and from the next version Python 2.6 or newer is required.
-    The last version to support Python 2.4 was Celery series 2.2.
+    This is the last version to support Python 2.7,
+    and from the next version (Celery 5.x) Python 3.5 or newer is required.
+
+    If you're running an older version of Python, you need to be running
+    an older version of Celery:
+
+    - Python 2.6: Celery series 3.1 or earlier.
+    - Python 2.5: Celery series 3.0 or earlier.
+    - Python 2.4 was Celery series 2.2 or earlier.
+
+    Celery is a project with minimal funding,
+    so we don't support Microsoft Windows.
+    Please don't open any issues related to that platform.
 
 *Celery* requires a message transport to send and receive messages.
 The RabbitMQ and Redis broker transports are feature complete,
@@ -58,9 +68,9 @@ across data centers.
 Get Started
 ===========
 
-If this is the first time you're trying to use Celery, or you are
-new to Celery 3.0 coming from previous versions then you should read our
-getting started tutorials:
+If this is the first time you're trying to use Celery, or if you haven't
+kept up with development in the 3.1 version and are coming from previous versions,
+then you should read our getting started tutorials:
 
 - :ref:`first-steps`
 - :ref:`next-steps`
@@ -68,9 +78,9 @@ getting started tutorials:
 Celery is…
 ==========
 
-.. _`mailing-list`: http://groups.google.com/group/celery-users
+.. _`mailing-list`: https://groups.google.com/group/celery-users
 
-.. topic:: \ 
+.. topic:: \
 
     - **Simple**
 
@@ -95,19 +105,19 @@ Celery is…
 
         Workers and clients will automatically retry in the event
         of connection loss or failure, and some brokers support
-        HA in way of *Master/Master* or *Master/Slave* replication.
+        HA in way of *Primary/Primary* or *Primary/Replica* replication.
 
     - **Fast**
 
         A single Celery process can process millions of tasks a minute,
         with sub-millisecond round-trip latency (using RabbitMQ,
-        py-librabbitmq, and optimized settings).
+        librabbitmq, and optimized settings).
 
     - **Flexible**
 
         Almost every part of *Celery* can be extended or used on its own,
         Custom pool implementations, serializers, compression schemes, logging,
-        schedulers, consumers, producers, autoscalers, broker transports and much more.
+        schedulers, consumers, producers, broker transports, and much more.
 
 
 .. topic:: It supports
@@ -118,23 +128,20 @@ Celery is…
         - **Brokers**
 
             - :ref:`RabbitMQ <broker-rabbitmq>`, :ref:`Redis <broker-redis>`,
-            - :ref:`MongoDB <broker-mongodb>` (exp), ZeroMQ (exp)
-            - :ref:`CouchDB <broker-couchdb>` (exp), :ref:`SQLAlchemy <broker-sqlalchemy>` (exp)
-            - :ref:`Django ORM <broker-django>` (exp), :ref:`Amazon SQS <broker-sqs>`, (exp)
-            - and more…
+            - :ref:`Amazon SQS <broker-sqs>`, and more…
 
         - **Concurrency**
 
             - prefork (multiprocessing),
             - Eventlet_, gevent_
-            - threads/single threaded
+            - `solo` (single threaded)
 
         - **Result Stores**
 
             - AMQP, Redis
-            - memcached, MongoDB
+            - Memcached,
             - SQLAlchemy, Django ORM
-            - Apache Cassandra
+            - Apache Cassandra, Elasticsearch
 
         - **Serialization**
 
@@ -145,7 +152,7 @@ Celery is…
 Features
 ========
 
-.. topic:: \ 
+.. topic:: \
 
     .. hlist::
         :columns: 2
@@ -158,11 +165,11 @@ Features
 
             :ref:`Read more… <guide-monitoring>`.
 
-        - **Workflows**
+        - **Work-flows**
 
-            Simple and complex workflows can be composed using
+            Simple and complex work-flows can be composed using
             a set of powerful primitives we call the "canvas",
-            including grouping, chaining, chunking and more.
+            including grouping, chaining, chunking, and more.
 
             :ref:`Read more… <guide-canvas>`.
 
@@ -177,42 +184,26 @@ Features
         - **Scheduling**
 
             You can specify the time to run a task in seconds or a
-            :class:`~datetime.datetime`, or or you can use
+            :class:`~datetime.datetime`, or you can use
             periodic tasks for recurring events based on a
-            simple interval, or crontab expressions
+            simple interval, or Crontab expressions
             supporting minute, hour, day of week, day of month, and
             month of year.
 
             :ref:`Read more… <guide-beat>`.
 
-        - **Autoreloading**
-
-            In development workers can be configured to automatically reload source
-            code as it changes, including :manpage:`inotify(7)` support on Linux.
-
-            :ref:`Read more… <worker-autoreloading>`.
-
-        - **Autoscaling**
-
-            Dynamically resizing the worker pool depending on load,
-            or custom metrics specified by the user, used to limit
-            memory usage in shared hosting/cloud environments or to
-            enforce a given quality of service.
-
-            :ref:`Read more… <worker-autoscaling>`.
-
         - **Resource Leak Protection**
 
-            The :option:`--maxtasksperchild` option is used for user tasks
-            leaking resources, like memory or file descriptors, that
-            are simply out of your control.
+            The :option:`--max-tasks-per-child <celery worker --max-tasks-per-child>`
+            option is used for user tasks leaking resources, like memory or
+            file descriptors, that are simply out of your control.
 
-            :ref:`Read more… <worker-maxtasksperchild>`.
+            :ref:`Read more… <worker-max-tasks-per-child>`.
 
         - **User Components**
 
             Each worker component can be customized, and additional components
-            can be defined by the user.  The worker is built up using "bootsteps" — a
+            can be defined by the user. The worker is built up using "bootsteps" — a
             dependency graph enabling fine grained control of the worker's
             internals.
 
@@ -222,42 +213,41 @@ Features
 Framework Integration
 =====================
 
-Celery is easy to integrate with web frameworks, some of which even have
+Celery is easy to integrate with web frameworks, some of them even have
 integration packages:
 
     +--------------------+------------------------+
-    | `Django`_          | `django-celery`_       |
+    | `Pyramid`_         | :pypi:`pyramid_celery` |
     +--------------------+------------------------+
-    | `Pyramid`_         | `pyramid_celery`_      |
-    +--------------------+------------------------+
-    | `Pylons`_          | `celery-pylons`_       |
+    | `Pylons`_          | :pypi:`celery-pylons`  |
     +--------------------+------------------------+
     | `Flask`_           | not needed             |
     +--------------------+------------------------+
-    | `web2py`_          | `web2py-celery`_       |
+    | `web2py`_          | :pypi:`web2py-celery`  |
     +--------------------+------------------------+
-    | `Tornado`_         | `tornado-celery`_      |
+    | `Tornado`_         | :pypi:`tornado-celery` |
+    +--------------------+------------------------+
+    | `Tryton`_          | :pypi:`celery_tryton`  |
     +--------------------+------------------------+
 
-The integration packages are not strictly necessary, but they can make
+For `Django`_ see :ref:`django-first-steps`.
+
+The integration packages aren't strictly necessary, but they can make
 development easier, and sometimes they add important hooks like closing
 database connections at :manpage:`fork(2)`.
 
-.. _`Django`: http://djangoproject.com/
+.. _`Django`: https://djangoproject.com/
 .. _`Pylons`: http://pylonshq.com/
 .. _`Flask`: http://flask.pocoo.org/
 .. _`web2py`: http://web2py.com/
-.. _`Bottle`: http://bottlepy.org/
+.. _`Bottle`: https://bottlepy.org/
 .. _`Pyramid`: http://docs.pylonsproject.org/en/latest/docs/pyramid.html
-.. _`pyramid_celery`: http://pypi.python.org/pypi/pyramid_celery/
-.. _`django-celery`: http://pypi.python.org/pypi/django-celery
-.. _`celery-pylons`: http://pypi.python.org/pypi/celery-pylons
-.. _`web2py-celery`: http://code.google.com/p/web2py-celery/
 .. _`Tornado`: http://www.tornadoweb.org/
-.. _`tornado-celery`: http://github.com/mher/tornado-celery/
+.. _`Tryton`: http://www.tryton.org/
+.. _`tornado-celery`: https://github.com/mher/tornado-celery/
 
-Quickjump
-=========
+Quick Jump
+==========
 
 .. topic:: I want to ⟶
 
@@ -281,12 +271,11 @@ Quickjump
         - :ref:`see a list of running workers <monitoring-control>`
         - :ref:`purge all messages <monitoring-control>`
         - :ref:`inspect what the workers are doing <monitoring-control>`
-        - :ref:`see what tasks a worker has registerd <monitoring-control>`
+        - :ref:`see what tasks a worker has registered <monitoring-control>`
         - :ref:`migrate tasks to a new broker <monitoring-control>`
         - :ref:`see a list of event message types <event-reference>`
         - :ref:`contribute to Celery <contributing>`
         - :ref:`learn about available configuration settings <configuration>`
-        - :ref:`receive email when a task fails <conf-error-mails>`
         - :ref:`get a list of people and companies using Celery <res-using-celery>`
         - :ref:`write my own remote control command <worker-custom-control-commands>`
         - :ref:`change worker queues at runtime <worker-queues>`

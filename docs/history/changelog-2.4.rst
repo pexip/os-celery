@@ -11,7 +11,7 @@
 
 2.4.5
 =====
-:release-date: 2011-12-02 05:00 P.M GMT
+:release-date: 2011-12-02 05:00 p.m. GMT
 :release-by: Ask Solem
 
 * Periodic task interval schedules were accidentally rounded down,
@@ -28,7 +28,7 @@
 
 2.4.4
 =====
-:release-date: 2011-11-25 04:00 P.M GMT
+:release-date: 2011-11-25 04:00 p.m. GMT
 :release-by: Ask Solem
 
 .. _v244-security-fixes:
@@ -37,7 +37,8 @@ Security Fixes
 --------------
 
 * [Security: `CELERYSA-0001`_] Daemons would set effective id's rather than
-  real id's when the :option:`--uid`/:option:`--gid` arguments to
+  real id's when the :option:`--uid <celery --uid>`/
+  :option:`--gid <celery --gid>` arguments to
   :program:`celery multi`, :program:`celeryd_detach`,
   :program:`celery beat` and :program:`celery events` were used.
 
@@ -46,7 +47,7 @@ Security Fixes
 
 
 .. _`CELERYSA-0001`:
-    http://github.com/celery/celery/tree/master/docs/sec/CELERYSA-0001.txt
+    https://github.com/celery/celery/tree/master/docs/sec/CELERYSA-0001.txt
 
 .. _v244-fixes:
 
@@ -70,7 +71,7 @@ Fixes
 
     Contributed by Juan Ignacio Catalano.
 
-* generic init scripts now automatically creates log and pid file
+* generic init-scripts now automatically creates log and pid file
   directories (Issue #545).
 
     Contributed by Chris Streeter.
@@ -79,7 +80,7 @@ Fixes
 
 2.4.3
 =====
-:release-date: 2011-11-22 06:00 P.M GMT
+:release-date: 2011-11-22 06:00 p.m. GMT
 :release-by: Ask Solem
 
 * Fixes module import typo in `celeryctl` (Issue #538).
@@ -90,27 +91,27 @@ Fixes
 
 2.4.2
 =====
-:release-date: 2011-11-14 12:00 P.M GMT
+:release-date: 2011-11-14 12:00 p.m. GMT
 :release-by: Ask Solem
 
-* Program module no longer uses relative imports so that it is
+* Program module no longer uses relative imports so that it's
   possible to do ``python -m celery.bin.name``.
 
 .. _version-2.4.1:
 
 2.4.1
 =====
-:release-date: 2011-11-07 06:00 P.M GMT
+:release-date: 2011-11-07 06:00 p.m. GMT
 :release-by: Ask Solem
 
-* celeryctl inspect commands was missing output.
+* ``celeryctl inspect`` commands was missing output.
 
 * processes pool: Decrease polling interval for less idle CPU usage.
 
-* processes pool: MaybeEncodingError was not wrapped in ExceptionInfo
+* processes pool: MaybeEncodingError wasn't wrapped in ExceptionInfo
   (Issue #524).
 
-* worker: would silence errors occuring after task consumer started.
+* worker: would silence errors occurring after task consumer started.
 
 * logging: Fixed a bug where unicode in stdout redirected log messages
   couldn't be written (Issue #522).
@@ -119,7 +120,7 @@ Fixes
 
 2.4.0
 =====
-:release-date: 2011-11-04 04:00 P.M GMT
+:release-date: 2011-11-04 04:00 p.m. GMT
 :release-by: Ask Solem
 
 .. _v240-important:
@@ -132,11 +133,11 @@ Important Notes
 * Fixed deadlock in worker process handling (Issue #496).
 
     A deadlock could occur after spawning new child processes because
-    the logging library's mutex was not properly reset after fork.
+    the logging library's mutex wasn't properly reset after fork.
 
     The symptoms of this bug affecting would be that the worker simply
     stops processing tasks, as none of the workers child processes
-    are functioning.  There was a greater chance of this bug occurring
+    are functioning. There was a greater chance of this bug occurring
     with ``maxtasksperchild`` or a time-limit enabled.
 
     This is a workaround for http://bugs.python.org/issue6721#msg140215.
@@ -156,8 +157,8 @@ Important Notes
     deprecated and will be removed in version 4.0.
 
     Note that this means that the result backend requires RabbitMQ 2.1.0 or
-    higher, and that you have to disable expiration if you are running
-    with an older version.  You can do so by disabling the
+    higher, and that you have to disable expiration if you're running
+    with an older version. You can do so by disabling the
     :setting:`CELERY_TASK_RESULT_EXPIRES` setting::
 
         CELERY_TASK_RESULT_EXPIRES = None
@@ -166,46 +167,54 @@ Important Notes
 
 * Broker transports can be now be specified using URLs
 
-    The broker can now be specified as an URL instead.
-    This URL must have the format::
+    The broker can now be specified as a URL instead.
+    This URL must have the format:
+
+    .. code-block:: text
 
         transport://user:password@hostname:port/virtual_host
 
-    for example the default broker is written as::
+    for example the default broker is written as:
+
+    .. code-block:: text
 
         amqp://guest:guest@localhost:5672//
 
     The scheme is required, so that the host is identified
-    as an URL and not just a host name.
+    as a URL and not just a host name.
     User, password, port and virtual_host are optional and
     defaults to the particular transports default value.
 
     .. note::
 
         Note that the path component (virtual_host) always starts with a
-        forward-slash.  This is necessary to distinguish between the virtual
+        forward-slash. This is necessary to distinguish between the virtual
         host ``''`` (empty) and ``'/'``, which are both acceptable virtual
         host names.
 
         A virtual host of ``'/'`` becomes:
 
+        .. code-block:: text
+
             amqp://guest:guest@localhost:5672//
 
-        and a virtual host of ``''`` (empty) becomes::
+        and a virtual host of ``''`` (empty) becomes:
+
+        .. code-block:: text
 
             amqp://guest:guest@localhost:5672/
 
         So the leading slash in the path component is **always required**.
 
     In addition the :setting:`BROKER_URL` setting has been added as an alias
-    to ``BROKER_HOST``.  Any broker setting specified in both the URL and in
-    the configuration will be ignored, if a setting is not provided in the URL
+    to ``BROKER_HOST``. Any broker setting specified in both the URL and in
+    the configuration will be ignored, if a setting isn't provided in the URL
     then the value from the configuration will be used as default.
 
-    Also, programs now support the :option:`-b|--broker` option to specify
-    a broker URL on the command-line:
+    Also, programs now support the :option:`--broker <celery --broker>`
+    option to specify a broker URL on the command-line:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ celery worker -b redis://localhost
 
@@ -263,27 +272,27 @@ Important Notes
 News
 ----
 
-* No longer depends on :mod:`pyparsing`.
+* No longer depends on :pypi:`pyparsing`.
 
 * Now depends on Kombu 1.4.3.
 
 * CELERY_IMPORTS can now be a scalar value (Issue #485).
 
-    It is too easy to forget to add the comma after the sole element of a
+    It's too easy to forget to add the comma after the sole element of a
     tuple, and this is something that often affects newcomers.
 
     The docs should probably use a list in examples, as using a tuple
-    for this doesn't even make sense.  Nonetheless, there are many
+    for this doesn't even make sense. Nonetheless, there are many
     tutorials out there using a tuple, and this change should be a help
     to new users.
 
-    Suggested by jsaxon-cars.
+    Suggested by :github_user:`jsaxon-cars`.
 
 * Fixed a memory leak when using the thread pool (Issue #486).
 
     Contributed by Kornelijus Survila.
 
-* The statedb was not saved at exit.
+* The ``statedb`` wasn't saved at exit.
 
     This has now been fixed and it should again remember previously
     revoked tasks when a ``--statedb`` is enabled.
@@ -301,14 +310,14 @@ News
 
     Contributed by Chris Chamberlin.
 
-* Fixed race condition in celery.events.state (celerymon/celeryev)
+* Fixed race condition in :mod:`celery.events.state` (``celerymon``/``celeryev``)
   where task info would be removed while iterating over it (Issue #501).
 
 * The Cache, Cassandra, MongoDB, Redis and Tyrant backends now respects
   the :setting:`CELERY_RESULT_SERIALIZER` setting (Issue #435).
 
-    This means that only the database (django/sqlalchemy) backends
-    currently does not support using custom serializers.
+    This means that only the database (Django/SQLAlchemy) backends
+    currently doesn't support using custom serializers.
 
     Contributed by Steeve Morin
 
@@ -321,7 +330,7 @@ News
 * ``multi`` now supports a ``stop_verify`` command to wait for
   processes to shutdown.
 
-* Cache backend did not work if the cache key was unicode (Issue #504).
+* Cache backend didn't work if the cache key was unicode (Issue #504).
 
     Fix contributed by Neil Chintomby.
 
@@ -336,23 +345,23 @@ News
 
     Fix contributed by Remy Noel
 
-* multi did not work on Windows (Issue #472).
+* multi didn't work on Windows (Issue #472).
 
 * New-style ``CELERY_REDIS_*`` settings now takes precedence over
   the old ``REDIS_*`` configuration keys (Issue #508).
 
     Fix contributed by Joshua Ginsberg
 
-* Generic beat init script no longer sets `bash -e` (Issue #510).
+* Generic beat init-script no longer sets `bash -e` (Issue #510).
 
     Fix contributed by Roger Hu.
 
-* Documented that Chords do not work well with redis-server versions
+* Documented that Chords don't work well with :command:`redis-server` versions
   before 2.2.
 
     Contributed by Dan McGee.
 
-* The :setting:`CELERYBEAT_MAX_LOOP_INTERVAL` setting was not respected.
+* The :setting:`CELERYBEAT_MAX_LOOP_INTERVAL` setting wasn't respected.
 
 * ``inspect.registered_tasks`` renamed to ``inspect.registered`` for naming
   consistency.
@@ -364,15 +373,19 @@ News
 * Worker logged the string representation of args and kwargs
   without safe guards (Issue #480).
 
-* RHEL init script: Changed worker startup priority.
+* RHEL init-script: Changed worker start-up priority.
 
-    The default start / stop priorities for MySQL on RHEL are
+    The default start / stop priorities for MySQL on RHEL are:
+
+    .. code-block:: console
 
         # chkconfig: - 64 36
 
     Therefore, if Celery is using a database as a broker / message store, it
     should be started after the database is up and running, otherwise errors
-    will ensue. This commit changes the priority in the init script to
+    will ensue. This commit changes the priority in the init-script to:
+
+    .. code-block:: console
 
         # chkconfig: - 85 15
 
@@ -382,10 +395,10 @@ News
 
     Contributed by Yury V. Zaytsev.
 
-* KeyValueStoreBackend.get_many did not respect the ``timeout`` argument
+* KeyValueStoreBackend.get_many didn't respect the ``timeout`` argument
   (Issue #512).
 
-* beat/events's --workdir option did not chdir before after
+* beat/events's ``--workdir`` option didn't :manpage:`chdir(2)` before after
   configuration was attempted (Issue #506).
 
 * After deprecating 2.4 support we can now name modules correctly, since we
@@ -393,10 +406,10 @@ News
 
     Therefore the following internal modules have been renamed:
 
-        celery.concurrency.evlet    -> celery.concurrency.eventlet
-        celery.concurrency.evg      -> celery.concurrency.gevent
+        ``celery.concurrency.evlet``    -> ``celery.concurrency.eventlet``
+        ``celery.concurrency.evg``      -> ``celery.concurrency.gevent``
 
-* AUTHORS file is now sorted alphabetically.
+* :file:`AUTHORS` file is now sorted alphabetically.
 
     Also, as you may have noticed the contributors of new features/fixes are
     now mentioned in the Changelog.

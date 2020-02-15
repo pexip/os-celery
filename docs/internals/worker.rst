@@ -30,22 +30,23 @@ Components
 Consumer
 --------
 
-Receives messages from the broker using `Kombu`_.
-
-.. _`Kombu`: http://pypi.python.org/pypi/kombu
+Receives messages from the broker using :pypi:`Kombu`.
 
 When a message is received it's converted into a
-:class:`celery.worker.job.TaskRequest` object.
+:class:`celery.worker.request.Request` object.
 
 Tasks with an ETA, or rate-limit are entered into the `timer`,
 messages that can be immediately processed are sent to the execution pool.
+
+ETA and rate-limit when used together will result in the rate limit being
+observed with the task being scheduled after the ETA.
 
 Timer
 -----
 
 The timer schedules internal functions, like cleanup and internal monitoring,
 but also it schedules ETA tasks and rate limited tasks.
-If the scheduled tasks eta has passed it is moved to the execution pool.
+If the scheduled tasks ETA has passed it is moved to the execution pool.
 
 TaskPool
 --------

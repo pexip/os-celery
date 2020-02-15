@@ -12,26 +12,29 @@
 
         .. attribute:: Connection
 
-            Broker connection class used.  Default is
-            :class:`kombu.Connection`.
+            Broker connection class used. Default is :class:`kombu.Connection`.
 
         .. attribute:: Consumer
 
-            Base Consumer class used.  Default is :class:`kombu.compat.Consumer`.
+            Base Consumer class used. Default is :class:`kombu.Consumer`.
+
+        .. attribute:: Producer
+
+            Base Producer class used. Default is :class:`kombu.Producer`.
 
         .. attribute:: queues
 
-            All currently defined task queues. (A :class:`Queues` instance).
+            All currently defined task queues (a :class:`Queues` instance).
 
         .. automethod:: Queues
         .. automethod:: Router
-        .. autoattribute:: TaskConsumer
-        .. autoattribute:: TaskProducer
         .. automethod:: flush_routes
 
+        .. autoattribute:: create_task_message
+        .. autoattribute:: send_task_message
         .. autoattribute:: default_queue
         .. autoattribute:: default_exchange
-        .. autoattribute:: publisher_pool
+        .. autoattribute:: producer_pool
         .. autoattribute:: router
         .. autoattribute:: routes
 
@@ -39,12 +42,5 @@
     ------
 
     .. autoclass:: Queues
-        :members:
-        :undoc-members:
-
-    TaskPublisher
-    -------------
-
-    .. autoclass:: TaskPublisher
         :members:
         :undoc-members:

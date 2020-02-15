@@ -2,7 +2,7 @@
  Celery - Distributed Task Queue
 =================================
 
-Celery is a simple, flexible and reliable distributed system to
+Celery is a simple, flexible, and reliable distributed system to
 process vast amounts of messages, while providing operations with
 the tools required to maintain such a system.
 
@@ -18,7 +18,7 @@ Celery is Open Source and licensed under the `BSD License`_.
 Getting Started
 ===============
 
-- If you are new to Celery you can get started by following
+- If you're new to Celery you can get started by following
   the :ref:`first-steps` tutorial.
 
 - You can also check out the :ref:`FAQ <faq>`.
@@ -42,16 +42,13 @@ Contents
 .. toctree::
     :maxdepth: 1
 
-    configuration
     django/index
     contributing
     community
     tutorials/index
     faq
     changelog
-    whatsnew-3.1
-    whatsnew-3.0
-    whatsnew-2.5
+    whatsnew-4.2
     reference/index
     internals/index
     history/index
@@ -64,4 +61,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
