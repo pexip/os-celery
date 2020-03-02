@@ -1,13 +1,11 @@
-diff --git a/celery/bin/multi.py b/celery/bin/multi.py
-index f30aa9e..8bd9308 100644
---- a/celery/bin/multi.py
-+++ b/celery/bin/multi.py
-@@ -276,7 +276,7 @@ class MultiTool(object):
-         try:
-             os.kill(pid, 0)
-         except OSError as exc:
--            if exc.errno == errno.ESRCH:
-+            if exc.errno in [errno.ESRCH, errno.EPERM]:
+--- a/celery/apps/multi.py
++++ b/celery/apps/multi.py
+@@ -178,7 +178,7 @@
+             try:
+                 os.kill(pid, sig)
+             except OSError as exc:
+-                if exc.errno != errno.ESRCH:
++                if (exc.errno != errno.ESRCH and exc.errno != errno.EPERM):
+                     raise
+                 maybe_call(on_error, self)
                  return False
-             raise
-         return True
