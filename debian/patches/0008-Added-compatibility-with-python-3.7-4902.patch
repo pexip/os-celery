@@ -1,0 +1,57 @@
+From: kidoz <ckidoz@gmail.com>
+Date: Thu, 12 Jul 2018 20:02:10 +0300
+Subject: Added compatibility with python 3.7 (#4902)
+
+---
+ celery/app/routes.py      | 8 +++++++-
+ t/unit/app/test_routes.py | 5 +++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/celery/app/routes.py b/celery/app/routes.py
+index 9957a4f..dc06eb9 100644
+--- a/celery/app/routes.py
++++ b/celery/app/routes.py
+@@ -17,6 +17,12 @@ from celery.utils.collections import lpmerge
+ from celery.utils.functional import maybe_evaluate, mlazy
+ from celery.utils.imports import symbol_by_name
+ 
++try:
++    Pattern = re._pattern_type
++except AttributeError:  # pragma: no cover
++    # for support Python 3.7
++    Pattern = re.Pattern
++
+ __all__ = ('MapRoute', 'Router', 'prepare')
+ 
+ 
+@@ -33,7 +39,7 @@ class MapRoute(object):
+         self.map = {}
+         self.patterns = OrderedDict()
+         for k, v in map:
+-            if isinstance(k, re._pattern_type):
++            if isinstance(k, Pattern):
+                 self.patterns[k] = v
+             elif '*' in k:
+                 self.patterns[re.compile(glob_to_re(k))] = v
+diff --git a/t/unit/app/test_routes.py b/t/unit/app/test_routes.py
+index 8d3eac0..5ed8c53 100644
+--- a/t/unit/app/test_routes.py
++++ b/t/unit/app/test_routes.py
+@@ -78,12 +78,17 @@ class test_MapRoute(RouteCase):
+         assert route('celery.awesome') is None
+ 
+     def test_route_for_task__glob(self):
++        from re import compile
++
+         route = routes.MapRoute([
+             ('proj.tasks.*', 'routeA'),
+             ('demoapp.tasks.bar.*', {'exchange': 'routeB'}),
++            (compile(r'(video|image)\.tasks\..*'), {'queue': 'media'}),
+         ])
+         assert route('proj.tasks.foo') == {'queue': 'routeA'}
+         assert route('demoapp.tasks.bar.moo') == {'exchange': 'routeB'}
++        assert route('video.tasks.foo') == {'queue': 'media'}
++        assert route('image.tasks.foo') == {'queue': 'media'}
+         assert route('demoapp.foo.bar.moo') is None
+ 
+     def test_expand_route_not_found(self):

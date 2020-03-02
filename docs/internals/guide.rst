@@ -16,7 +16,7 @@ The API>RCP Precedence Rule
 - The API is more important than Readability
 - Readability is more important than Convention
 - Convention is more important than Performance
-    - …unless the code is a proven hotspot.
+    - …unless the code is a proven hot-spot.
 
 More important than anything else is the end-user API.
 Conventions must step aside, and any suffering is always alleviated
@@ -34,7 +34,7 @@ Naming
 - Follows :pep:`8`.
 
 - Class names must be `CamelCase`.
-- but not if they are verbs, verbs shall be `lower_case`:
+- but not if they're verbs, verbs shall be `lower_case`:
 
     .. code-block:: python
 
@@ -62,9 +62,9 @@ Naming
     .. note::
 
         Sometimes it makes sense to have a class mask as a function,
-        and there is precedence for this in the stdlib (e.g.
-        :class:`~contextlib.contextmanager`).  Celery examples include
-        :class:`~celery.subtask`, :class:`~celery.chord`,
+        and there's precedence for this in the Python standard library (e.g.,
+        :class:`~contextlib.contextmanager`). Celery examples include
+        :class:`~celery.signature`, :class:`~celery.chord`,
         ``inspect``, :class:`~kombu.utils.functional.promise` and more..
 
 - Factory functions and methods must be `CamelCase` (excluding verbs):
@@ -93,7 +93,7 @@ as this means that they can be set by either instantiation or inheritance.
         active = True
         serializer = 'json'
 
-        def __init__(self, serializer=None):
+        def __init__(self, serializer=None, active=None):
             self.serializer = serializer or self.serializer
 
             # must check for None when value can be false-y
@@ -108,7 +108,7 @@ A subclass can change the default value:
 
 and the value can be set at instantiation:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> producer = TaskProducer(serializer='msgpack')
 
@@ -148,7 +148,7 @@ Composites
 ~~~~~~~~~~
 
 Similarly to exceptions, composite classes should be override-able by
-inheritance and/or instantiation.  Common sense can be used when
+inheritance and/or instantiation. Common sense can be used when
 selecting what classes to include, but often it's better to add one
 too many: predicting what users need to override is hard (this has
 saved us from many a monkey patch).
@@ -174,12 +174,12 @@ In the beginning Celery was developed for Django, simply because
 this enabled us get the project started quickly, while also having
 a large potential user base.
 
-In Django there is a global settings object, so multiple Django projects
+In Django there's a global settings object, so multiple Django projects
 can't co-exist in the same process space, this later posed a problem
-for using Celery with frameworks that doesn't have this limitation.
+for using Celery with frameworks that don't have this limitation.
 
-Therefore the app concept was introduced.  When using apps you use 'celery'
-objects instead of importing things from celery submodules, this
+Therefore the app concept was introduced. When using apps you use 'celery'
+objects instead of importing things from Celery sub-modules, this
 (unfortunately) also means that Celery essentially has two API's.
 
 Here's an example using Celery in single-mode:
@@ -231,22 +231,21 @@ Module Overview
 
 - celery.loaders
 
-    Every app must have a loader.  The loader decides how configuration
-    is read, what happens when the worker starts, when a task starts and ends,
+    Every app must have a loader. The loader decides how configuration
+    is read; what happens when the worker starts; when a task starts and ends;
     and so on.
 
     The loaders included are:
 
         - app
 
-            Custom celery app instances uses this loader by default.
+            Custom Celery app instances uses this loader by default.
 
         - default
 
             "single-mode" uses this loader by default.
 
-    Extension loaders also exist, like ``django-celery``, ``celery-pylons``
-    and so on.
+    Extension loaders also exist, for example :pypi:`celery-pylons`.
 
 - celery.worker
 
@@ -264,11 +263,11 @@ Module Overview
 - celery.bin
 
     Command-line applications.
-    setup.py creates setuptools entrypoints for these.
+    :file:`setup.py` creates setuptools entry-points for these.
 
 - celery.concurrency
 
-    Execution pool implementations (prefork, eventlet, gevent, threads).
+    Execution pool implementations (prefork, eventlet, gevent, solo).
 
 - celery.db
 
@@ -293,15 +292,43 @@ Module Overview
 
     single-mode interface to creating tasks, and controlling workers.
 
-- celery.tests
+- t.unit (int distribution)
 
-    The unittest suite.
+    The unit test suite.
 
 - celery.utils
 
-    Utility functions used by the celery code base.
+    Utility functions used by the Celery code base.
     Much of it is there to be compatible across Python versions.
 
 - celery.contrib
 
-    Additional public code that doesn't fit into any other namespace.
+    Additional public code that doesn't fit into any other name-space.
+
+Worker overview
+===============
+
+* `celery.bin.worker:Worker`
+
+   This is the command-line interface to the worker.
+
+   Responsibilities:
+       * Daemonization when :option:`--detach <celery worker --detach>` set,
+       * dropping privileges when using :option:`--uid <celery worker --uid>`/
+         :option:`--gid <celery worker --gid>` arguments
+       * Installs "concurrency patches" (eventlet/gevent monkey patches).
+
+  ``app.worker_main(argv)`` calls
+  ``instantiate('celery.bin.worker:Worker')(app).execute_from_commandline(argv)``
+
+* `app.Worker` -> `celery.apps.worker:Worker`
+
+   Responsibilities:
+   * sets up logging and redirects standard outs
+   * installs signal handlers (`TERM`/`HUP`/`STOP`/`USR1` (cry)/`USR2` (rdb))
+   * prints banner and warnings (e.g., pickle warning)
+   * handles the :option:`celery worker --purge` argument
+
+* `app.WorkController` -> `celery.worker.WorkController`
+
+   This is the real worker, built up around bootsteps.

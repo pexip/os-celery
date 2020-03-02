@@ -5,7 +5,7 @@
 #       ``/usr/share/zsh/site-functions``) and name the script ``_celery``
 #
 #   Alternative B). Or, use this file as a oh-my-zsh plugin (rename the script
-#   to ``_celery``), and add it to .zshrc e.g. plugins=(celery git osx ruby)
+#   to ``_celery``), and add it to .zshrc: plugins=(celery git osx ruby)
 #
 
 _celery () {
@@ -14,12 +14,13 @@ local -a _1st_arguments ifargs dopts controlargs
 typeset -A opt_args
 
 _1st_arguments=('worker' 'events' 'beat' 'shell' 'multi' 'amqp' 'status' 'inspect' \
-                'control' 'purge' 'list' 'migrate' 'call' 'result' 'report')
+                'control' 'purge' 'list' 'migrate' 'call' 'result' 'report' \
+                'graph', 'logtool', 'help')
 ifargs=('--app=' '--broker=' '--loader=' '--config=' '--version')
 dopts=('--detach' '--umask=' '--gid=' '--uid=' '--pidfile=' '--logfile=' '--loglevel=')
 controlargs=('--timeout' '--destination')
 _arguments \
-        '(-A --app=)'{-A,--app}'[app instance to use (e.g. module.attr_name):APP]' \
+        '(-A --app=)'{-A,--app}'[app instance to use (e.g., module.attr_name):APP]' \
         '(-b --broker=)'{-b,--broker}'[url to broker.  default is "amqp://guest@localhost//":BROKER]' \
         '(--loader)--loader[name of custom loader class to use.:LOADER]' \
         '(--config)--config[Name of the configuration module:CONFIG]' \
@@ -31,7 +32,7 @@ _arguments \
         '*:: :->subcmds' && return 0
 
 if (( CURRENT == 1 )); then
-    _describe -t commands "celery subcommand" _1st_arguments
+    _describe -t commands "celery sub-command" _1st_arguments
     return
 fi
 
@@ -39,24 +40,22 @@ case "$words[1]" in
     worker)
     _arguments \
     '(-C --concurrency=)'{-C,--concurrency=}'[Number of child processes processing the queue. The default is the number of CPUs.]' \
-    '(--pool)--pool=:::(prefork eventlet gevent threads solo)' \
+    '(--pool)--pool=:::(prefork eventlet gevent solo)' \
     '(--purge --discard)'{--discard,--purge}'[Purges all waiting tasks before the daemon is started.]' \
     '(-f --logfile=)'{-f,--logfile=}'[Path to log file. If no logfile is specified, stderr is used.]' \
     '(--loglevel=)--loglevel=:::(critical error warning info debug)' \
-    '(-N --hostname=)'{-N,--hostname=}'[Set custom hostname, e.g. "foo@example.com".]' \
+    '(-N --hostname=)'{-N,--hostname=}'[Set custom hostname, e.g., "foo@example.com".]' \
     '(-B --beat)'{-B,--beat}'[Also run the celerybeat periodic task scheduler.]' \
     '(-s --schedule=)'{-s,--schedule=}'[Path to the schedule database if running with the -B option. Defaults to celerybeat-schedule.]' \
     '(-S --statedb=)'{-S,--statedb=}'[Path to the state database.Default: None]' \
     '(-E --events)'{-E,--events}'[Send events that can be captured by monitors like celeryev, celerymon, and others.]' \
     '(--time-limit=)--time-limit=[nables a hard time limit (in seconds int/float) for tasks]' \
     '(--soft-time-limit=)--soft-time-limit=[Enables a soft time limit (in seconds int/float) for tasks]' \
-    '(--maxtasksperchild=)--maxtasksperchild=[Maximum number of tasks a pool worker can execute before it"s terminated and replaced by a new worker.]' \
+    '(--max-tasks-per-child=)--max-tasks-per-child=[Maximum number of tasks a pool worker can execute before it"s terminated and replaced by a new worker.]' \
     '(-Q --queues=)'{-Q,--queues=}'[List of queues to enable for this worker, separated by comma. By default all configured queues are enabled.]' \
     '(-I --include=)'{-I,--include=}'[Comma separated list of additional modules to import.]' \
     '(--pidfile=)--pidfile=[Optional file used to store the process pid.]' \
     '(--autoscale=)--autoscale=[Enable autoscaling by providing max_concurrency, min_concurrency.]' \
-    '(--autoreload)--autoreload[Enable autoreloading.]' \
-    '(--no-execv)--no-execv[Don"t do execv after multiprocessing child fork.]'
     compadd -a ifargs
     ;;
     inspect)
@@ -125,7 +124,7 @@ case "$words[1]" in
     '(-d --dump)'{-d,--dump}'[Dump events to stdout.]' \
     '(-c --camera=)'{-c,--camera=}'[Take snapshots of events using this camera.]' \
     '(-F --frequency=)'{-F,--frequency=}'[Camera: Shutter frequency.  Default is every 1.0 seconds.]' \
-    '(-r --maxrate=)'{-r,--maxrate=}'[Camera: Optional shutter rate limit (e.g. 10/m).]'
+    '(-r --maxrate=)'{-r,--maxrate=}'[Camera: Optional shutter rate limit (e.g., 10/m).]'
     compadd -a dopts fargs
     ;;
     *)

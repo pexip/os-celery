@@ -1,0 +1,16 @@
+From: Michael Fladischer <FladischerMichael@fladi.at>
+Date: Wed, 20 Jun 2018 19:11:12 +0200
+Subject: Remove upper version cap for pytest.
+
+---
+ requirements/test.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/requirements/test.txt b/requirements/test.txt
+index 19ad92e..0b61e93 100644
+--- a/requirements/test.txt
++++ b/requirements/test.txt
+@@ -1,2 +1,2 @@
+ case>=1.3.1
+-pytest>=3.0,<3.3
++pytest>=3.0

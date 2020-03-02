@@ -1,3 +1,136 @@
+celery (4.2.1-3) unstable; urgency=medium
+
+  * Integrate py37-skip-tests patch into gbp-pq.
+  * Add patch to relax version requirements on billiard (Closes:
+    #923719).
+  * Clean up pytest artifacts to allow two builds in a row.
+  * Bump Standards-Version to 4.3.0.
+
+ -- Michael Fladischer <fladi@debian.org>  Thu, 07 Mar 2019 22:14:11 +0100
+
+celery (4.2.1-2) unstable; urgency=medium
+
+  * Team upload.
+  * Skip test_sphinx also in the autopkgtest, like it's done for the
+    regular build.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Thu, 27 Sep 2018 08:06:32 +0200
+
+celery (4.2.1-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Ondřej Nový ]
+  * Use 'python3 -m sphinx' instead of sphinx-build for building docs.
+
+  [ Michael Fladischer ]
+  * New upstream release.
+
+  [ Héctor Orón Martínez ]
+  * debian/patches/0008-Python-3.7-compat-issues-4852.patch: new
+    (Closes: #902900)
+
+  [ Michael Fladischer ]
+  * debian/patches/0008-Added-compatibility-with-python-3.7-4902.patch
+    new.
+
+  [ Mattia Rizzolo ]
+  * Add patch from Matthias Klose to skip two failing tests with py3.7.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Wed, 26 Sep 2018 13:17:25 +0200
+
+celery (4.2.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * Replace debian/upstream-signing-key.pgp with debian/upstream/signing-
+    key.asc.
+  * Refresh patches.
+  * Bump minimum kombu version to 4.2.0.
+  * Add patch to remove upper version cap for pytest.
+  * Bump Standards-Version to 4.1.4.
+  * Remove async documentation from doc-base registration as it is no
+    longer shipped by upstream.
+  * Skip sphinx test as it fails and is not directly related to celery.
+  * Fix spelling errors in patch descriptions as flagged by lintian.
+
+ -- Michael Fladischer <fladi@debian.org>  Thu, 21 Jun 2018 16:51:21 +0200
+
+celery (4.1.0-4) unstable; urgency=medium
+
+  * Run upstream tests with pytest instead of nose. Closes: 888407.
+
+ -- Brian May <bam@debian.org>  Tue, 03 Apr 2018 08:38:39 +1000
+
+celery (4.1.0-3) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * d/control: Set Vcs-* to salsa.debian.org
+
+  [ Michael Fladischer ]
+  * Add patch to disable pytest (>=3.3) log capturing to avoid changing
+    log handlers (Closes: #892640).
+  * Bump debhelper compatibility and version to 11.
+  * Bump Standards-Version to 4.1.3.
+  * Enable autopkgtest-pkg-python testsuite.
+  * Always use pristine-tar.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 28 Mar 2018 21:32:57 +0200
+
+celery (4.1.0-2) unstable; urgency=low
+
+  * Add python(3)-ephem to Depends to allow for solar based schedules.
+  * Pick upstream patch to fix solar based scheduler.
+  * Refresh patches.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 15 Nov 2017 14:58:01 +0100
+
+celery (4.1.0-1) unstable; urgency=low
+
+  * Upload to unstable (Closes: #872270).
+  * Run wrap-and-sort -bast to reduce diff size of future changes.
+  * Build documentation in override_dh_sphinxdoc.
+  * Clean up modified files to allow two builds in a row.
+  * Bump Standards-Version to 4.1.1.
+  * Drop X-Python* headers.
+  * Install all process management integrations as examples in python-
+    celery-common.
+  * Use https:// for uscan URL.
+  * Drop celeryd binary package.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 08 Nov 2017 09:04:37 +0100
+
+celery (4.1.0-1~exp1) experimental; urgency=low
+
+  [ Michael Fladischer ]
+  * New upstream release.
+  * Add new upstream signing key.
+  * Refresh patches for 4.1.0.
+  * Bump Standards-Version to 4.0.0.
+  * Fix documentation build:
+    - Switch to python2-sphinx.
+    - Add python2-sphinx-celery to Build-Depends.
+    - Bump versioned dependency on kombu.
+    - Update doc-base registration.
+  * Fix built-time tests by adding missing packages to Build-Depends:
+    - python(3)-pytest
+    - python(3)-case
+    - python(3)-eventlet
+    - python(3)-vine
+  * Clean up modified files to allow two builds in a row.
+  * Remove entrypoint wrappers missing from upstream:
+    - celeryd
+    - celerybeat
+    - celery-multi
+  * Reformat packaging files with cme for better readability.
+  * Add patch disabling intersphinx to prevent network requests during
+    build.
+
+  [ Brian May ]
+  * Apply upstream patch to allow Sphinx to strip memory addresses.
+    Closes: #868808.
+
+ -- Michael Fladischer <fladi@debian.org>  Mon, 31 Jul 2017 17:46:38 +0200
+
 celery (3.1.23-7pexip2) pexip; urgency=medium
 
   * debian/patches/node_alive.patch: Add patch to handle EPERM

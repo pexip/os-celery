@@ -1,8 +1,9 @@
-celerybeat.1
-celeryctl.1
-celeryd.1
-celeryd-multi.1
-celeryev.1
-camqadm.1
 celery.1
 debian/celeryd.*.init
+test.db
+celery.egg-info/requires.txt
+celery.egg-info/PKG-INFO
+celery.egg-info/SOURCES.txt
+.pytest_cache/README.md
+.pytest_cache/v/cache/nodeids
+.pytest_cache/v/cache/stepwise

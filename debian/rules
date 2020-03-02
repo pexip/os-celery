@@ -10,45 +10,33 @@ export PYBUILD_NAME=celery
 	dh $@ --with python2,python3,sphinxdoc --buildsystem=pybuild
 
 override_dh_installman:
-	set -e ; \
-	for doc in celery camqadm celerybeat celeryd-multi celeryd celeryev celeryctl; do \
-	  docbook-to-man debian/manpage.$$doc.sgml > $$doc.1; \
-	done
+	docbook-to-man debian/manpage.celery.sgml > celery.1
 	dh_installman
-
-override_dh_auto_build:
-	PYTHONPATH=.:$$PYTHONPATH sphinx-build -b html -d .build/.doctrees -N docs .build/html
-	ln docs/images/celery_128.png .build/html/_images/celery_128.png
-	dh_auto_build
 
 override_dh_auto_test:
 	PYTHONPATH=. LC_ALL=C.UTF-8 \
-	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test"
+	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx'"
 
 override_dh_clean:
-	rm -rf .build
+	rm -rf docs/.build
 	dh_clean
 
 override_dh_auto_install:
 	dh_auto_install
-	set e; for FILENAME in celery celerybeat celeryd celeryd-multi; do \
-	  rm $(PREFIX)/usr/bin/$$FILENAME; \
-	  rm $(PREFIX3)/usr/bin/$$FILENAME; \
-	done
+	rm $(PREFIX)/usr/bin/celery
+	rm $(PREFIX3)/usr/bin/celery
 	rmdir --ignore-fail-on-non-empty --parents $(PREFIX)/usr/bin $(PREFIX3)/usr/bin
 
 override_dh_install:
 	dh_install
 	# Fix permissions
-	set e; for FILENAME in celery celerybeat celeryd celeryd-multi; do \
-	  chmod 755 $(PREFIXC)/usr/bin/$$FILENAME; \
-	done
-
-override_dh_installinit:
-	ln extra/generic-init.d/celerybeat debian/celeryd.celerybeat.init
-	ln extra/generic-init.d/celeryd debian/celeryd.celeryd.init
-	dh_installinit --name celerybeat
-	dh_installinit --name celeryd
+	chmod 755 $(PREFIXC)/usr/bin/celery
 
 override_dh_installchangelogs:
 	dh_installchangelogs Changelog
+
+override_dh_sphinxdoc:
+ifeq (,$(findstring nodoc, $(DEB_BUILD_OPTIONS)))
+	PYTHONPATH=. python3 -m sphinx -b html -d docs/.build/.doctrees -N docs $(CURDIR)/debian/python-celery-doc/usr/share/doc/python-celery-doc/html
+	dh_sphinxdoc
+endif

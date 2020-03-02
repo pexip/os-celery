@@ -1,4 +1,1 @@
 debian/wrappers/celery usr/bin/
-debian/wrappers/celerybeat usr/bin/
-debian/wrappers/celeryd usr/bin/
-debian/wrappers/celeryd-multi usr/bin/
