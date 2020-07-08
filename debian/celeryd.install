@@ -1,2 +1,0 @@
-debian/forking.conf				/lib/systemd/system/celerybeat.service.d
-debian/forking.conf				/lib/systemd/system/celeryd.service.d

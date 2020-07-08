@@ -10,5 +10,4 @@ py37-skip-tests.diff
 0010-Relax-version-requirements-on-billiard.patch
 
 # pexip
-lsb-start.patch
 node_alive.patch
