@@ -2,6 +2,7 @@ celery (4.2.1-3pexip1) pexip; urgency=medium
 
   * Migrate to Buster
   * Refresh debian/patches/node_alive.patch
+  * debian/control: remove unused (Build-)Depends
 
  -- Vincent Sanders <vince@pexip.com>  Mon, 02 Mar 2020 09:01:38 +0000
 
