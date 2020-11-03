@@ -1,0 +1,22 @@
+From: Nicolas Dandrimont <olasd@debian.org>
+Date: Sat, 17 Oct 2020 01:45:21 +0200
+Subject: Update test for the Debian version of pymongo
+
+Forwarded: no
+---
+ t/unit/backends/test_mongodb.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/t/unit/backends/test_mongodb.py b/t/unit/backends/test_mongodb.py
+index fb304b7..313d3ee 100644
+--- a/t/unit/backends/test_mongodb.py
++++ b/t/unit/backends/test_mongodb.py
+@@ -155,7 +155,7 @@ class test_MongoBackend:
+                'dns-seedlist-host.example.com/'
+                'celerydatabase')
+ 
+-        with patch('dns.resolver.query', side_effect=mock_resolver):
++        with patch('pymongo.srv_resolver.resolver.query', side_effect=mock_resolver):
+             mb = MongoBackend(app=self.app, url=uri)
+             assert mb.mongo_host == [
+                 'mongo1.example.com:27017',

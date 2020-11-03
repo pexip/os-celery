@@ -5,10 +5,7 @@
 # integration tests require a rabbitmq-server:
 # https://github.com/celery/celery/issues/3917
 
-for p in $(pyversions -s); do
-    $p $(which pytest) -k-test_sphinx --ignore t/distro --ignore t/integration t
-done
-
+set -e
 for p in $(py3versions -s); do
-    $p $(which pytest-3) -k-test_sphinx --ignore t/distro --ignore t/integration t
+    $p -m pytest -k-test_sphinx -k-DatabaseBackend -k-test_worker  -p celery.contrib.pytest --ignore t/distro --ignore t/integration t
 done

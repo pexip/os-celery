@@ -1,35 +1,35 @@
-from __future__ import absolute_import, print_function, unicode_literals
-
 import os
 import socket
 import sys
 from collections import deque
 from datetime import datetime, timedelta
 from functools import partial
+from queue import Empty
+from queue import Queue as FastQueue
 from threading import Event
+from unittest.mock import Mock, patch
 
 import pytest
 from amqp import ChannelError
-from case import Mock, patch, skip
+from case import mock
 from kombu import Connection
+from kombu.asynchronous import get_event_loop
 from kombu.common import QoS, ignore_errors
 from kombu.transport.base import Message
 from kombu.transport.memory import Transport
 from kombu.utils.uuid import uuid
 
+import t.skip
 from celery.bootsteps import CLOSE, RUN, TERMINATE, StartStopStep
 from celery.concurrency.base import BasePool
 from celery.exceptions import (ImproperlyConfigured, InvalidTaskError,
                                TaskRevokedError, WorkerShutdown,
                                WorkerTerminate)
-from celery.five import Empty
-from celery.five import Queue as FastQueue
-from celery.five import range
 from celery.platforms import EX_FAILURE
 from celery.utils.nodenames import worker_direct
 from celery.utils.serialization import pickle
 from celery.utils.timer2 import Timer
-from celery.worker import components, consumer, state
+from celery.worker import autoscale, components, consumer, state
 from celery.worker import worker as worker_module
 from celery.worker.consumer import Consumer
 from celery.worker.pidbox import gPidbox
@@ -42,7 +42,7 @@ def MockStep(step=None):
     else:
         step.blueprint = Mock(name='step.blueprint')
     step.blueprint.name = 'MockNS'
-    step.name = 'MockStep(%s)' % (id(step),)
+    step.name = f'MockStep({id(step)})'
     return step
 
 
@@ -276,8 +276,12 @@ class test_Consumer(ConsumerCase):
         assert self.timer.empty()
 
     def test_start_channel_error(self):
+        def loop_side_effect():
+            yield KeyError('foo')
+            yield SyntaxError('bar')
+
         c = self.NoopConsumer(task_events=False, pool=BasePool())
-        c.loop.on_nth_call_do_raise(KeyError('foo'), SyntaxError('bar'))
+        c.loop.side_effect = loop_side_effect()
         c.channel_errors = (KeyError,)
         try:
             with pytest.raises(KeyError):
@@ -286,8 +290,11 @@ class test_Consumer(ConsumerCase):
             c.timer and c.timer.stop()
 
     def test_start_connection_error(self):
+        def loop_side_effect():
+            yield KeyError('foo')
+            yield SyntaxError('bar')
         c = self.NoopConsumer(task_events=False, pool=BasePool())
-        c.loop.on_nth_call_do_raise(KeyError('foo'), SyntaxError('bar'))
+        c.loop.side_effect = loop_side_effect()
         c.connection_errors = (KeyError,)
         try:
             with pytest.raises(SyntaxError):
@@ -317,7 +324,7 @@ class test_Consumer(ConsumerCase):
 
             def drain_events(self, **kwargs):
                 self.obj.connection = None
-                raise socket.error('foo')
+                raise OSError('foo')
 
         c = self.LoopConsumer()
         c.blueprint.state = RUN
@@ -580,7 +587,7 @@ class test_Consumer(ConsumerCase):
         controller.box.node.listen = BConsumer()
         connections = []
 
-        class Connection(object):
+        class Connection:
             calls = 0
 
             def __init__(self, obj):
@@ -625,9 +632,14 @@ class test_Consumer(ConsumerCase):
     @patch('kombu.connection.Connection._establish_connection')
     @patch('kombu.utils.functional.sleep')
     def test_connect_errback(self, sleep, connect):
+        def connect_side_effect():
+            yield Mock()
+            while True:
+                yield ChannelError('error')
+
         c = self.NoopConsumer()
         Transport.connection_errors = (ChannelError,)
-        connect.on_nth_call_do(ChannelError('error'), n=1)
+        connect.side_effect = connect_side_effect()
         c.connect()
         connect.assert_called_with()
 
@@ -641,7 +653,7 @@ class test_Consumer(ConsumerCase):
 
     def test_start__loop(self):
 
-        class _QoS(object):
+        class _QoS:
             prev = 3
             value = 4
 
@@ -734,10 +746,10 @@ class test_WorkController(ConsumerCase):
             self.worker._send_worker_shutdown()
             ws.send.assert_called_with(sender=self.worker)
 
-    @skip.todo('unstable test')
+    @pytest.mark.skip('TODO: unstable test')
     def test_process_shutdown_on_worker_shutdown(self):
-        from celery.concurrency.prefork import process_destructor
         from celery.concurrency.asynpool import Worker
+        from celery.concurrency.prefork import process_destructor
         with patch('celery.signals.worker_process_shutdown') as ws:
             with patch('os._exit') as _exit:
                 worker = Worker(None, None, on_exit=process_destructor)
@@ -790,6 +802,110 @@ class test_WorkController(ConsumerCase):
             timer_cls='celery.utils.timer2.Timer',
         )
         assert worker.autoscaler
+
+    @t.skip.if_win32
+    @mock.sleepdeprived(module=autoscale)
+    def test_with_autoscaler_file_descriptor_safety(self):
+        # Given: a test celery worker instance with auto scaling
+        worker = self.create_worker(
+            autoscale=[10, 5], use_eventloop=True,
+            timer_cls='celery.utils.timer2.Timer',
+            threads=False,
+        )
+        # Given: This test requires a QoS defined on the worker consumer
+        worker.consumer.qos = qos = QoS(lambda prefetch_count: prefetch_count, 2)
+        qos.update()
+
+        # Given: We have started the worker pool
+        worker.pool.start()
+
+        # Then: the worker pool is the same as the autoscaler pool
+        auto_scaler = worker.autoscaler
+        assert worker.pool == auto_scaler.pool
+
+        # Given: Utilize kombu to get the global hub state
+        hub = get_event_loop()
+        # Given: Initial call the Async Pool to register events works fine
+        worker.pool.register_with_event_loop(hub)
+
+        # Create some mock queue message and read from them
+        _keep = [Mock(name=f'req{i}') for i in range(20)]
+        [state.task_reserved(m) for m in _keep]
+        auto_scaler.body()
+
+        # Simulate a file descriptor from the list is closed by the OS
+        # auto_scaler.force_scale_down(5)
+        # This actually works -- it releases the semaphore properly
+        # Same with calling .terminate() on the process directly
+        for fd, proc in worker.pool._pool._fileno_to_outq.items():
+            # however opening this fd as a file and closing it will do it
+            queue_worker_socket = open(str(fd), "w")
+            queue_worker_socket.close()
+            break  # Only need to do this once
+
+        # When: Calling again to register with event loop ...
+        worker.pool.register_with_event_loop(hub)
+
+        # Then: test did not raise "OSError: [Errno 9] Bad file descriptor!"
+
+        # Finally:  Clean up so the threads before/after fixture passes
+        worker.terminate()
+        worker.pool.terminate()
+
+    @t.skip.if_win32
+    @mock.sleepdeprived(module=autoscale)
+    def test_with_file_descriptor_safety(self):
+        # Given: a test celery worker instance
+        worker = self.create_worker(
+            autoscale=[10, 5], use_eventloop=True,
+            timer_cls='celery.utils.timer2.Timer',
+            threads=False,
+        )
+
+        # Given: This test requires a QoS defined on the worker consumer
+        worker.consumer.qos = qos = QoS(lambda prefetch_count: prefetch_count, 2)
+        qos.update()
+
+        # Given: We have started the worker pool
+        worker.pool.start()
+
+        # Given: Utilize kombu to get the global hub state
+        hub = get_event_loop()
+        # Given: Initial call the Async Pool to register events works fine
+        worker.pool.register_with_event_loop(hub)
+
+        # Given: Mock the Hub to return errors for add and remove
+        def throw_file_not_found_error(*args, **kwargs):
+            raise OSError()
+
+        hub.add = throw_file_not_found_error
+        hub.add_reader = throw_file_not_found_error
+        hub.remove = throw_file_not_found_error
+
+        # When: Calling again to register with event loop ...
+        worker.pool.register_with_event_loop(hub)
+        worker.pool._pool.register_with_event_loop(hub)
+        # Then: test did not raise OSError
+        # Note: worker.pool is prefork.TaskPool whereas
+        # worker.pool._pool is the asynpool.AsynPool class.
+
+        # When: Calling the tic method on_poll_start
+        worker.pool._pool.on_poll_start()
+        # Then: test did not raise OSError
+
+        # Given: a mock object that fakes whats required to do whats next
+        proc = Mock(_sentinel_poll=42)
+
+        # When: Calling again to register with event loop ...
+        worker.pool._pool._track_child_process(proc, hub)
+        # Then: test did not raise OSError
+
+        # Given:
+        worker.pool._pool._flush_outqueue = throw_file_not_found_error
+
+        # Finally:  Clean up so the threads before/after fixture passes
+        worker.terminate()
+        worker.pool.terminate()
 
     def test_dont_stop_or_terminate(self):
         worker = self.app.WorkController(concurrency=1, loglevel=0)

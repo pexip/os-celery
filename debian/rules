@@ -1,13 +1,9 @@
 #!/usr/bin/make -f
 
-PREFIX = debian/python-celery
-PREFIX3 = debian/python3-celery
-PREFIXC = debian/python-celery-common
-
 export PYBUILD_NAME=celery
 
 %:
-	dh $@ --with python2,python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
 
 override_dh_installman:
 	docbook-to-man debian/manpage.celery.sgml > celery.1
@@ -15,25 +11,10 @@ override_dh_installman:
 
 override_dh_auto_test:
 	PYTHONPATH=. LC_ALL=C.UTF-8 \
-	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx'"
+	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx -k-test_worker -p celery.contrib.pytest'"
 
-override_dh_clean:
-	rm -rf docs/.build
-	dh_clean
-
-override_dh_auto_install:
-	dh_auto_install
-	rm $(PREFIX)/usr/bin/celery
-	rm $(PREFIX3)/usr/bin/celery
-	rmdir --ignore-fail-on-non-empty --parents $(PREFIX)/usr/bin $(PREFIX3)/usr/bin
-
-override_dh_install:
-	dh_install
-	# Fix permissions
-	chmod 755 $(PREFIXC)/usr/bin/celery
-
-override_dh_installchangelogs:
-	dh_installchangelogs Changelog
+execute_after_dh_auto_install:
+	rm -rf $(CURDIR)/debian/python3-celery/usr/bin
 
 override_dh_sphinxdoc:
 ifeq (,$(findstring nodoc, $(DEB_BUILD_OPTIONS)))

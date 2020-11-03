@@ -7,6 +7,27 @@
 .. contents::
     :local:
 
+Most Linux distributions these days use systemd for managing the lifecycle of system
+and user services.
+
+You can check if your Linux distribution uses systemd by typing:
+
+.. code-block:: console
+
+  $ systemd --version
+  systemd 237
+  +PAM +AUDIT +SELINUX +IMA +APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4 +SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 +IDN -PCRE2 default-hierarchy=hybrid
+
+If you have output similar to the above, please refer to
+:ref:`our systemd documentation <daemon-systemd-generic>` for guidance.
+
+However, the init.d script should still work in those Linux distributions
+as well since systemd provides the systemd-sysv compatibility layer
+which generates services automatically from the init.d scripts we provide.
+
+If you package Celery for multiple Linux distributions
+and some do not support systemd or to other Unix systems as well,
+you may want to refer to :ref:`our init.d documentation <daemon-generic>`.
 
 .. _daemon-generic:
 
@@ -20,7 +41,7 @@ This directory contains generic bash init-scripts for the
 these should run on Linux, FreeBSD, OpenBSD, and other Unix-like platforms.
 
 .. _`extra/generic-init.d/`:
-    https://github.com/celery/celery/tree/3.1/extra/generic-init.d/
+    https://github.com/celery/celery/tree/master/extra/generic-init.d/
 
 .. _generic-initd-celeryd:
 
@@ -51,13 +72,11 @@ the worker you must also export them (e.g., :command:`export DISPLAY=":0"`)
 
     .. code-block:: console
 
-        $ celery multi start worker1 \
-            -A proj \
+        $ celery -A proj multi start worker1 \
             --pidfile="$HOME/run/celery/%n.pid" \
             --logfile="$HOME/log/celery/%n%I.log"
 
-        $ celery multi restart worker1 \
-            -A proj \
+        $ celery -A proj multi restart worker1 \
             --logfile="$HOME/log/celery/%n%I.log" \
             --pidfile="$HOME/run/celery/%n.pid
 
@@ -354,7 +373,7 @@ Usage ``systemd``
 * `extra/systemd/`_
 
 .. _`extra/systemd/`:
-    https://github.com/celery/celery/tree/3.1/extra/systemd/
+    https://github.com/celery/celery/tree/master/extra/systemd/
 
 .. _generic-systemd-celery:
 
@@ -380,13 +399,13 @@ This is an example systemd file:
   Group=celery
   EnvironmentFile=/etc/conf.d/celery
   WorkingDirectory=/opt/celery
-  ExecStart=/bin/sh -c '${CELERY_BIN} multi start ${CELERYD_NODES} \
-    -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+  ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} multi start ${CELERYD_NODES} \
+    --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
   ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait ${CELERYD_NODES} \
     --pidfile=${CELERYD_PID_FILE}'
-  ExecReload=/bin/sh -c '${CELERY_BIN} multi restart ${CELERYD_NODES} \
-    -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+  ExecReload=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} multi restart ${CELERYD_NODES} \
+    --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
 
   [Install]
@@ -449,6 +468,37 @@ This is an example configuration for a Python project:
     CELERYD_PID_FILE="/var/run/celery/%n.pid"
     CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
     CELERYD_LOG_LEVEL="INFO"
+
+    # you may wish to add these options for Celery Beat
+    CELERYBEAT_PID_FILE="/var/run/celery/beat.pid"
+    CELERYBEAT_LOG_FILE="/var/log/celery/beat.log"
+
+Service file: celerybeat.service
+----------------------------------------------------------------------
+
+This is an example systemd file for Celery Beat:
+
+:file:`/etc/systemd/system/celerybeat.service`:
+
+.. code-block:: bash
+
+  [Unit]
+  Description=Celery Beat Service
+  After=network.target
+
+  [Service]
+  Type=simple
+  User=celery
+  Group=celery
+  EnvironmentFile=/etc/conf.d/celery
+  WorkingDirectory=/opt/celery
+  ExecStart=/bin/sh -c '${CELERY_BIN} -A ${CELERY_APP} beat  \
+    --pidfile=${CELERYBEAT_PID_FILE} \
+    --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
+
+  [Install]
+  WantedBy=multi-user.target
+
 
 Running the worker with superuser privileges (root)
 ======================================================================
