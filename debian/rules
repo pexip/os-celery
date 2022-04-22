@@ -1,6 +1,10 @@
 #!/usr/bin/make -f
 
 export PYBUILD_NAME=celery
+export PYBUILD_AFTER_TEST=rm -rf {build_dir}/test.db {build_dir}/14
+export PYBUILD_TEST_ARGS= --ignore=t/unit/backends/test_base.py --ignore=t/unit/backends/test_rpc.py --ignore=t/unit/contrib/test_pytest.py --ignore=t/unit/concurrency/test_eventlet.py --ignore=t/unit/concurrency/test_prefork.py -k "not test_check_privileges[accept_content0] and not test_check_privileges[accept_content1] and not test_check_privileges[accept_content2] and not test_regression_worker_startup_info and not test_with_guid and not test_only_gid and not test_init_mongodb_dnspython2_pymongo3_seedlist" t/unit
+export PYTEST_PLUGINS=celery.contrib.pytest
+
 
 %:
 	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
@@ -8,10 +12,6 @@ export PYBUILD_NAME=celery
 override_dh_installman:
 	docbook-to-man debian/manpage.celery.sgml > celery.1
 	dh_installman
-
-override_dh_auto_test:
-	PYTHONPATH=. LC_ALL=C.UTF-8 \
-	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx -k-test_worker -p celery.contrib.pytest'"
 
 execute_after_dh_auto_install:
 	rm -rf $(CURDIR)/debian/python3-celery/usr/bin

@@ -250,6 +250,24 @@ AMQP Result Backend
 
 The AMQP result backend has been removed as it was deprecated in version 4.0.
 
+Removed Deprecated Modules
+--------------------------
+
+The `celery.utils.encoding` and the `celery.task` modules has been deprecated
+in version 4.0 and therefore are removed in 5.0.
+
+If you were using the `celery.utils.encoding` module before,
+you should import `kombu.utils.encoding` instead.
+
+If you were using the `celery.task` module before, you should import directly
+from the `celery` module instead.
+
+If you were using `from celery.task import Task` you should use 
+`from celery import Task` instead.
+
+If you were using the `celery.task` decorator you should use 
+`celery.shared_task` instead.
+
 .. _new_command_line_interface:
 
 New Command Line Interface
@@ -263,6 +281,8 @@ As a result a few breaking changes has been introduced:
 - :program:`celery amqp` and :program:`celery shell` require the `repl`
   sub command to start a shell. You can now also invoke specific commands
   without a shell. Type `celery amqp --help` or `celery shell --help` for details.
+- The API for adding user options has changed.
+  Refer to the :ref:`documentation <extending-command-options>` for details.
 
 Click provides shell completion `out of the box <https://click.palletsprojects.com/en/7.x/bashcomplete/>`_.
 This functionality replaces our previous bash completion script and adds
@@ -279,7 +299,7 @@ Starting from Celery 5.0, the pytest plugin is no longer enabled by default.
 Please refer to the :ref:`documentation <pytest_plugin>` for instructions.
 
 Ordered Group Results for the Redis Result Backend
--------------------------------------------------
+--------------------------------------------------
 
 Previously group results were not ordered by their invocation order.
 Celery 4.4.7 introduced an opt-in feature to make them ordered.
@@ -287,7 +307,7 @@ Celery 4.4.7 introduced an opt-in feature to make them ordered.
 It is now an opt-out behavior.
 
 If you were previously using the Redis result backend, you might need to
-out-out of this behavior.
+opt-out of this behavior.
 
 Please refer to the :ref:`documentation <redis-group-result-ordering>`
 for instructions on how to disable this feature.

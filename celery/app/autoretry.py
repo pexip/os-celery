@@ -33,7 +33,7 @@ def add_autoretry_behaviour(task, **options):
             try:
                 return task._orig_run(*args, **kwargs)
             except Ignore:
-                # If Ignore signal occures task shouldn't be retried,
+                # If Ignore signal occurs task shouldn't be retried,
                 # even if it suits autoretry_for list
                 raise
             except Retry:
@@ -46,6 +46,15 @@ def add_autoretry_behaviour(task, **options):
                             retries=task.request.retries,
                             maximum=retry_backoff_max,
                             full_jitter=retry_jitter)
-                raise task.retry(exc=exc, **retry_kwargs)
+                # Override max_retries
+                if hasattr(task, 'override_max_retries'):
+                    retry_kwargs['max_retries'] = getattr(task,
+                                                          'override_max_retries',
+                                                          task.max_retries)
+                ret = task.retry(exc=exc, **retry_kwargs)
+                # Stop propagation
+                if hasattr(task, 'override_max_retries'):
+                    delattr(task, 'override_max_retries')
+                raise ret
 
         task._orig_run, task.run = task.run, run

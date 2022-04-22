@@ -7,13 +7,13 @@ Subject: Don't require pre-commit - it isn't in Debian
  1 file changed, 1 deletion(-)
 
 diff --git a/requirements/test.txt b/requirements/test.txt
-index fd0ba17..f7c9bed 100644
+index 90c84b1..c2c47f3 100644
 --- a/requirements/test.txt
 +++ b/requirements/test.txt
-@@ -6,6 +6,5 @@ pytest-timeout~=1.4.2
+@@ -4,6 +4,5 @@ pytest-subtests
+ pytest-timeout~=1.4.2
  boto3>=1.9.178
- python-dateutil<2.8.1,>=2.1; python_version < '3.0'
- moto==1.3.7
+ moto>=2.2.6
 -pre-commit
  -r extras/yaml.txt
  -r extras/msgpack.txt

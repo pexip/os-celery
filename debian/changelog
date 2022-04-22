@@ -1,3 +1,47 @@
+celery (5.2.6-1) unstable; urgency=low
+
+  * New upstream release.
+  * Set github project as new homepage (Closes: #975386).
+  * Clean up celery.egg-info/entry_points.txt to allow two builds in a
+    row.
+  * Update year in d/copyright.
+
+ -- Michael Fladischer <fladi@debian.org>  Fri, 22 Apr 2022 22:13:40 +0000
+
+celery (5.2.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * Refresh patches, drop 0012-Update-test-for-the-Debian-version-of-
+    pymongo.patch.
+  * Disable failing mongodb test.
+
+ -- Michael Fladischer <fladi@debian.org>  Thu, 30 Dec 2021 18:36:11 +0000
+
+celery (5.2.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michael Fladischer <fladi@debian.org>  Mon, 27 Dec 2021 22:25:50 +0000
+
+celery (5.2.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * Refresh and renumber patches.
+  * Add python3-click-plugins to Build-Depends, required by tests.
+  * Bump Standards-Version to 4.6.0.1.
+  * Use uscan version 4.
+  * Add python3-flaky and python3-pytest-subtests to Build-Depends.
+  * Fix missing and changed paths in doc-base registration.
+  * Install testfiles using d/pybuild.testfiles.
+  * Configure tests using pybuild environment variables instead of
+    debhelper override.
+  * Update year in d/copyright.
+  * Depend on python3-all for autopkgtests.
+  * Add d/upstream/metadata.
+  * Skip broken tests in autopkgtest.
+
+ -- Michael Fladischer <fladi@debian.org>  Thu, 25 Nov 2021 10:48:23 +0000
+
 celery (5.0.0-3) unstable; urgency=medium
 
   * Team upload.

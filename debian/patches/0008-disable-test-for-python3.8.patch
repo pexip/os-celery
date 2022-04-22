@@ -7,7 +7,7 @@ Subject: disable test for python3.8
  1 file changed, 2 insertions(+)
 
 diff --git a/t/unit/security/test_security.py b/t/unit/security/test_security.py
-index 31d682e..43673f2 100644
+index 0b75ffc..6749611 100644
 --- a/t/unit/security/test_security.py
 +++ b/t/unit/security/test_security.py
 @@ -17,6 +17,7 @@ import builtins
@@ -17,7 +17,7 @@ index 31d682e..43673f2 100644
 +import sys
  
  import pytest
- from case import mock
+ from kombu.exceptions import SerializerNotInstalled
 @@ -101,6 +102,7 @@ class test_security(SecurityCase):
          disabled.clear()
  

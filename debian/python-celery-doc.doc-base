@@ -21,10 +21,9 @@ Files: /usr/share/doc/python-celery-doc/html/*.html
        /usr/share/doc/python-celery-doc/html/_modules/celery/utils/*.html
        /usr/share/doc/python-celery-doc/html/_modules/celery/worker/*.html
        /usr/share/doc/python-celery-doc/html/_modules/kombu/*.html
-       /usr/share/doc/python-celery-doc/html/_modules/sqlalchemy/orm/*.html
        /usr/share/doc/python-celery-doc/html/django/*.html
        /usr/share/doc/python-celery-doc/html/getting-started/*.html
-       /usr/share/doc/python-celery-doc/html/getting-started/brokers/*.html
+       /usr/share/doc/python-celery-doc/html/getting-started/backends-and-brokers/*.html
        /usr/share/doc/python-celery-doc/html/history/*.html
        /usr/share/doc/python-celery-doc/html/internals/*.html
        /usr/share/doc/python-celery-doc/html/internals/reference/*.html

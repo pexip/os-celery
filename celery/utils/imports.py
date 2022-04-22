@@ -6,6 +6,11 @@ import warnings
 from contextlib import contextmanager
 from importlib import reload
 
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from kombu.utils.imports import symbol_by_name
 
 #: Billiard sets this when execv is enabled.
@@ -25,21 +30,14 @@ class NotAPackage(Exception):
     """Raised when importing a package, but it's not a package."""
 
 
-if sys.version_info > (3, 3):  # pragma: no cover
-    def qualname(obj):
-        """Return object name."""
-        if not hasattr(obj, '__name__') and hasattr(obj, '__class__'):
-            obj = obj.__class__
-        q = getattr(obj, '__qualname__', None)
-        if '.' not in q:
-            q = '.'.join((obj.__module__, q))
-        return q
-else:
-    def qualname(obj):  # noqa
-        """Return object name."""
-        if not hasattr(obj, '__name__') and hasattr(obj, '__class__'):
-            obj = obj.__class__
-        return '.'.join((obj.__module__, obj.__name__))
+def qualname(obj):
+    """Return object name."""
+    if not hasattr(obj, '__name__') and hasattr(obj, '__class__'):
+        obj = obj.__class__
+    q = getattr(obj, '__qualname__', None)
+    if '.' not in q:
+        q = '.'.join((obj.__module__, q))
+    return q
 
 
 def instantiate(name, *args, **kwargs):
@@ -144,13 +142,8 @@ def gen_task_name(app, name, module_name):
 
 
 def load_extension_class_names(namespace):
-    try:
-        from pkg_resources import iter_entry_points
-    except ImportError:  # pragma: no cover
-        return
-
-    for ep in iter_entry_points(namespace):
-        yield ep.name, ':'.join([ep.module_name, ep.attrs[0]])
+    for ep in entry_points().get(namespace, []):
+        yield ep.name, ep.value
 
 
 def load_extension_classes(namespace):

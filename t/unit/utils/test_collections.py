@@ -1,5 +1,5 @@
 import pickle
-from collections import Mapping
+from collections.abc import Mapping
 from itertools import count
 from time import monotonic
 
@@ -129,11 +129,11 @@ class test_ConfigurationView:
         assert len(self.view) == 2
 
     def test_isa_mapping(self):
-        from collections import Mapping
+        from collections.abc import Mapping
         assert issubclass(ConfigurationView, Mapping)
 
     def test_isa_mutable_mapping(self):
-        from collections import MutableMapping
+        from collections.abc import MutableMapping
         assert issubclass(ConfigurationView, MutableMapping)
 
 
@@ -178,7 +178,7 @@ class test_LimitedSet:
 
     def test_purge(self):
         # purge now enforces rules
-        # cant purge(1) now. but .purge(now=...) still works
+        # can't purge(1) now. but .purge(now=...) still works
         s = LimitedSet(maxlen=10)
         [s.add(i) for i in range(10)]
         s.maxlen = 2
