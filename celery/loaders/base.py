@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 """Loader base class."""
-from __future__ import absolute_import, unicode_literals
-
 import importlib
 import os
 import re
@@ -12,7 +9,7 @@ from kombu.utils import json
 from kombu.utils.objects import cached_property
 
 from celery import signals
-from celery.five import reraise, string_t
+from celery.exceptions import reraise
 from celery.utils.collections import DictAttribute, force_mapping
 from celery.utils.functional import maybe_list
 from celery.utils.imports import (NotAPackage, find_module, import_from_cwd,
@@ -34,7 +31,7 @@ Did you mean '{suggest}'?
 unconfigured = object()
 
 
-class BaseLoader(object):
+class BaseLoader:
     """Base class for loaders.
 
     Loaders handles,
@@ -121,7 +118,7 @@ class BaseLoader(object):
         self.on_worker_process_init()
 
     def config_from_object(self, obj, silent=False):
-        if isinstance(obj, string_t):
+        if isinstance(obj, str):
             try:
                 obj = self._smart_import(obj, imp=self.import_from_cwd)
             except (ImportError, AttributeError):
@@ -149,26 +146,28 @@ class BaseLoader(object):
     def _import_config_module(self, name):
         try:
             self.find_module(name)
-        except NotAPackage:
+        except NotAPackage as exc:
             if name.endswith('.py'):
                 reraise(NotAPackage, NotAPackage(CONFIG_WITH_SUFFIX.format(
-                    module=name, suggest=name[:-3])), sys.exc_info()[2])
-            reraise(NotAPackage, NotAPackage(CONFIG_INVALID_NAME.format(
-                module=name)), sys.exc_info()[2])
+                        module=name, suggest=name[:-3])), sys.exc_info()[2])
+            raise NotAPackage(CONFIG_INVALID_NAME.format(module=name)) from exc
         else:
             return self.import_from_cwd(name)
 
     def find_module(self, module):
         return find_module(module)
 
-    def cmdline_config_parser(
-            self, args, namespace='celery',
-            re_type=re.compile(r'\((\w+)\)'),
-            extra_types={'json': json.loads},
-            override_types={'tuple': 'json',
-                            'list': 'json',
-                            'dict': 'json'}):
-        from celery.app.defaults import Option, NAMESPACES
+    def cmdline_config_parser(self, args, namespace='celery',
+                              re_type=re.compile(r'\((\w+)\)'),
+                              extra_types=None,
+                              override_types=None):
+        extra_types = extra_types if extra_types else {'json': json.loads}
+        override_types = override_types if override_types else {
+            'tuple': 'json',
+            'list': 'json',
+            'dict': 'json'
+        }
+        from celery.app.defaults import NAMESPACES, Option
         namespace = namespace and namespace.lower()
         typemap = dict(Option.typemap, **extra_types)
 
@@ -201,7 +200,7 @@ class BaseLoader(object):
                     value = NAMESPACES[ns.lower()][key].to_python(value)
                 except ValueError as exc:
                     # display key name in error message.
-                    raise ValueError('{0!r}: {1}'.format(ns_key, exc))
+                    raise ValueError(f'{ns_key!r}: {exc}')
             return ns_key, value
         return dict(getarg(arg) for arg in args)
 
@@ -253,13 +252,20 @@ def find_related_module(package, related_name):
     # Django 1.7 allows for speciying a class name in INSTALLED_APPS.
     # (Issue #2248).
     try:
-        importlib.import_module(package)
+        module = importlib.import_module(package)
+        if not related_name and module:
+            return module
     except ImportError:
         package, _, _ = package.rpartition('.')
         if not package:
             raise
 
+    module_name = f'{package}.{related_name}'
+
     try:
-        return importlib.import_module('{0}.{1}'.format(package, related_name))
-    except ImportError:
+        return importlib.import_module(module_name)
+    except ImportError as e:
+        import_exc_name = getattr(e, 'name', module_name)
+        if import_exc_name is not None and import_exc_name != module_name:
+            raise e
         return

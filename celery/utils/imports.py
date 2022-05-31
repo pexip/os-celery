@@ -1,17 +1,12 @@
-# -*- coding: utf-8 -*-
 """Utilities related to importing modules and symbols by name."""
-from __future__ import absolute_import, unicode_literals
-
-import imp as _imp
 import importlib
 import os
 import sys
 import warnings
 from contextlib import contextmanager
+from importlib import reload
 
 from kombu.utils.imports import symbol_by_name
-
-from celery.five import reload
 
 #: Billiard sets this when execv is enabled.
 #: We use it to find out the name of the original ``__main__``
@@ -78,18 +73,26 @@ def find_module(module, path=None, imp=None):
     if imp is None:
         imp = importlib.import_module
     with cwd_in_path():
-        if '.' in module:
-            last = None
-            parts = module.split('.')
-            for i, part in enumerate(parts[:-1]):
-                mpart = imp('.'.join(parts[:i + 1]))
-                try:
-                    path = mpart.__path__
-                except AttributeError:
-                    raise NotAPackage(module)
-                last = _imp.find_module(parts[i + 1], path)
-            return last
-        return _imp.find_module(module)
+        try:
+            return imp(module)
+        except ImportError:
+            # Raise a more specific error if the problem is that one of the
+            # dot-separated segments of the module name is not a package.
+            if '.' in module:
+                parts = module.split('.')
+                for i, part in enumerate(parts[:-1]):
+                    package = '.'.join(parts[:i + 1])
+                    try:
+                        mpart = imp(package)
+                    except ImportError:
+                        # Break out and re-raise the original ImportError
+                        # instead.
+                        break
+                    try:
+                        mpart.__path__
+                    except AttributeError:
+                        raise NotAPackage(package)
+            raise
 
 
 def import_from_cwd(module, imp=None, package=None):
@@ -156,7 +159,6 @@ def load_extension_classes(namespace):
             cls = symbol_by_name(class_name)
         except (ImportError, SyntaxError) as exc:
             warnings.warn(
-                'Cannot load {0} extension {1!r}: {2!r}'.format(
-                    namespace, class_name, exc))
+                f'Cannot load {namespace} extension {class_name!r}: {exc!r}')
         else:
             yield name, cls

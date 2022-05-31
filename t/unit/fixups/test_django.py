@@ -1,9 +1,8 @@
-from __future__ import absolute_import, unicode_literals
-
 from contextlib import contextmanager
+from unittest.mock import Mock, patch
 
 import pytest
-from case import Mock, mock, patch
+from case import mock
 
 from celery.fixups.django import (DjangoFixup, DjangoWorkerFixup,
                                   FixupWarning, _maybe_close_fd, fixup)
@@ -68,7 +67,7 @@ class test_DjangoFixup(FixupCase):
                 Fixup.assert_not_called()
             with mock.module_exists('django'):
                 import django
-                django.VERSION = (1, 10, 1)
+                django.VERSION = (1, 11, 1)
                 fixup(self.app)
                 Fixup.assert_called()
 
@@ -91,7 +90,7 @@ class test_DjangoFixup(FixupCase):
             f.install()
             self.sigs.worker_init.connect.assert_called_with(f.on_worker_init)
             assert self.app.loader.now == f.now
-            self.p.append.assert_called_with('/opt/vandelay')
+            self.p.insert.assert_called_with(0, '/opt/vandelay')
 
     def test_now(self):
         with self.fixup_context(self.app) as (f, _, _):
@@ -145,7 +144,7 @@ class test_DjangoWorkerFixup(FixupCase):
                         f.on_worker_process_init()
                         mcf.assert_called_with(conns[1].connection)
                         f.close_cache.assert_called_with()
-                        f._close_database.assert_called_with()
+                        f._close_database.assert_called_with(force=True)
 
                         f.validate_models = Mock(name='validate_models')
                         patching.setenv('FORKED_BY_MULTIPROCESSING', '1')
@@ -213,13 +212,35 @@ class test_DjangoWorkerFixup(FixupCase):
             f._db.connections = Mock()  # ConnectionHandler
             f._db.connections.all.side_effect = lambda: conns
 
+            f._close_database(force=True)
+            conns[0].close.assert_called_with()
+            conns[0].close_if_unusable_or_obsolete.assert_not_called()
+            conns[1].close.assert_called_with()
+            conns[1].close_if_unusable_or_obsolete.assert_not_called()
+            conns[2].close.assert_called_with()
+            conns[2].close_if_unusable_or_obsolete.assert_not_called()
+
+            for conn in conns:
+                conn.reset_mock()
+
             f._close_database()
+            conns[0].close.assert_not_called()
             conns[0].close_if_unusable_or_obsolete.assert_called_with()
+            conns[1].close.assert_not_called()
             conns[1].close_if_unusable_or_obsolete.assert_called_with()
+            conns[2].close.assert_not_called()
             conns[2].close_if_unusable_or_obsolete.assert_called_with()
 
+            conns[1].close.side_effect = KeyError(
+                'omg')
+            f._close_database()
+            with pytest.raises(KeyError):
+                f._close_database(force=True)
+
+            conns[1].close.side_effect = None
             conns[1].close_if_unusable_or_obsolete.side_effect = KeyError(
                 'omg')
+            f._close_database(force=True)
             with pytest.raises(KeyError):
                 f._close_database()
 

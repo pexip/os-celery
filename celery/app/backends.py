@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
 """Backend selection."""
-from __future__ import absolute_import, unicode_literals
-
 import sys
 import types
 
 from celery._state import current_app
-from celery.exceptions import ImproperlyConfigured
-from celery.five import reraise
+from celery.exceptions import ImproperlyConfigured, reraise
 from celery.utils.imports import load_extension_class_names, symbol_by_name
 
 __all__ = ('by_name', 'by_url')
@@ -30,11 +26,15 @@ BACKEND_ALIASES = {
     'cassandra': 'celery.backends.cassandra:CassandraBackend',
     'couchbase': 'celery.backends.couchbase:CouchbaseBackend',
     'couchdb': 'celery.backends.couchdb:CouchBackend',
+    'cosmosdbsql': 'celery.backends.cosmosdbsql:CosmosDBSQLBackend',
     'riak': 'celery.backends.riak:RiakBackend',
     'file': 'celery.backends.filesystem:FilesystemBackend',
     'disabled': 'celery.backends.base:DisabledBackend',
     'consul': 'celery.backends.consul:ConsulBackend',
     'dynamodb': 'celery.backends.dynamodb:DynamoDBBackend',
+    'azureblockblob': 'celery.backends.azureblockblob:AzureBlockBlobBackend',
+    'arangodb': 'celery.backends.arangodb:ArangoDbBackend',
+    's3': 'celery.backends.s3:S3Backend',
 }
 
 

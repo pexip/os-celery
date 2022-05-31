@@ -1,2 +1,4 @@
 Tests: upstream
-Depends: @, @builddeps@
+Depends:
+ @,
+ @builddeps@,

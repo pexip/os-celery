@@ -1,15 +1,13 @@
-from __future__ import absolute_import, unicode_literals
-
 import errno
 from datetime import datetime, timedelta
 from pickle import dumps, loads
+from unittest.mock import Mock, call, patch
 
 import pytest
-from case import Mock, call, patch, skip
+import pytz
 
 from celery import __version__, beat, uuid
-from celery.beat import event_t
-from celery.five import keys, string_t
+from celery.beat import BeatLazyFunc, event_t
 from celery.schedules import crontab, schedule
 from celery.utils.objects import Bunch
 
@@ -25,7 +23,7 @@ class MockShelve(dict):
         self.synced = True
 
 
-class MockService(object):
+class MockService:
     started = False
     stopped = False
 
@@ -37,6 +35,16 @@ class MockService(object):
 
     def stop(self, **kwargs):
         self.stopped = True
+
+
+class test_BeatLazyFunc:
+
+    def test_beat_lazy_func(self):
+        def add(a, b):
+            return a + b
+        result = BeatLazyFunc(add, 1, 2)
+        assert add(1, 2) == result()
+        assert add(1, 2) == result.delay()
 
 
 class test_ScheduleEntry:
@@ -143,11 +151,12 @@ class mSchedulerRuntimeError(mScheduler):
 
 class mocked_schedule(schedule):
 
-    def __init__(self, is_due, next_run_at):
+    def __init__(self, is_due, next_run_at, nowfun=datetime.utcnow):
         self._is_due = is_due
         self._next_run_at = next_run_at
         self.run_every = timedelta(seconds=1)
-        self.nowfun = datetime.utcnow
+        self.nowfun = nowfun
+        self.default_now = self.nowfun
 
     def is_due(self, last_run_at):
         return self._is_due, self._next_run_at
@@ -174,6 +183,17 @@ class test_Scheduler:
 
         scheduler = mScheduler(app=self.app)
         scheduler.apply_async(scheduler.Entry(task=foo.name, app=self.app))
+        foo.apply_async.assert_called()
+
+    def test_apply_async_with_null_args(self):
+
+        @self.app.task(shared=False)
+        def foo():
+            pass
+        foo.apply_async = Mock(name='foo.apply_async')
+
+        scheduler = mScheduler(app=self.app)
+        scheduler.apply_async(scheduler.Entry(task=foo.name, app=self.app, args=None, kwargs=None))
         foo.apply_async.assert_called()
 
     def test_should_sync(self):
@@ -238,7 +258,7 @@ class test_Scheduler:
 
     def test_info(self):
         scheduler = mScheduler(app=self.app)
-        assert isinstance(scheduler.info, string_t)
+        assert isinstance(scheduler.info, str)
 
     def test_maybe_entry(self):
         s = mScheduler(app=self.app)
@@ -316,6 +336,19 @@ class test_Scheduler:
         scheduler.update_from_dict(s)
         assert scheduler.tick() == min(nums) - 0.010
 
+    def test_ticks_microseconds(self):
+        scheduler = mScheduler(app=self.app)
+
+        now_ts = 1514797200.2
+        now = datetime.utcfromtimestamp(now_ts)
+        schedule_half = schedule(timedelta(seconds=0.5), nowfun=lambda: now)
+        scheduler.add(name='half_second_schedule', schedule=schedule_half)
+
+        scheduler.tick()
+        # ensure those 0.2 seconds on now_ts don't get dropped
+        expected_time = now_ts + 0.5 - 0.010
+        assert scheduler._heap[0].time == expected_time
+
     def test_ticks_schedule_change(self):
         # initialise schedule and check heap is not initialized
         scheduler = mScheduler(app=self.app)
@@ -357,6 +390,22 @@ class test_Scheduler:
         assert 'foo' not in a.schedule
         assert 'baz' in a.schedule
         assert a.schedule['bar'].schedule._next_run_at == 40
+
+    def test_when(self):
+        now_time_utc = datetime(2000, 10, 10, 10, 10, 10, 10, tzinfo=pytz.utc)
+        now_time_casey = now_time_utc.astimezone(
+            pytz.timezone('Antarctica/Casey')
+        )
+        scheduler = mScheduler(app=self.app)
+        result_utc = scheduler._when(
+            mocked_schedule(True, 10, lambda: now_time_utc),
+            10
+        )
+        result_casey = scheduler._when(
+            mocked_schedule(True, 10, lambda: now_time_casey),
+            10
+        )
+        assert result_utc == result_casey
 
     @patch('celery.beat.Scheduler._when', return_value=1)
     def test_populate_heap(self, _when):
@@ -464,6 +513,24 @@ class test_Scheduler:
         b = {'a': self.create_schedule_entry(task='b')}
         assert not scheduler.schedules_equal(a, b)
 
+    def test_schedule_equal_none_entry_vs_entry(self):
+        scheduler = beat.Scheduler(app=self.app)
+        a = None
+        b = {'a': self.create_schedule_entry(task='b')}
+        assert not scheduler.schedules_equal(a, b)
+
+    def test_schedule_equal_entry_vs_none_entry(self):
+        scheduler = beat.Scheduler(app=self.app)
+        a = {'a': self.create_schedule_entry(task='a')}
+        b = None
+        assert not scheduler.schedules_equal(a, b)
+
+    def test_schedule_equal_none_entry_vs_none_entry(self):
+        scheduler = beat.Scheduler(app=self.app)
+        a = None
+        b = None
+        assert scheduler.schedules_equal(a, b)
+
 
 def create_persistent_scheduler(shelv=None):
     if shelv is None:
@@ -542,17 +609,17 @@ class test_PersistentScheduler:
         s.setup_schedule()
         s._remove_db.assert_called_with()
 
-        s._store = {str('__version__'): 1}
+        s._store = {'__version__': 1}
         s.setup_schedule()
 
         s._store.clear = Mock()
         op = s.persistence.open = Mock()
         op.return_value = s._store
-        s._store[str('tz')] = 'FUNKY'
+        s._store['tz'] = 'FUNKY'
         s.setup_schedule()
         op.assert_called_with(s.schedule_filename, writeback=True)
         s._store.clear.assert_called_with()
-        s._store[str('utc_enabled')] = False
+        s._store['utc_enabled'] = False
         s._store.clear = Mock()
         s.setup_schedule()
         s._store.clear.assert_called_with()
@@ -561,10 +628,10 @@ class test_PersistentScheduler:
         s = create_persistent_scheduler()[0](
             schedule_filename='schedule', app=self.app,
         )
-        s._store = {str('entries'): {}}
+        s._store = {'entries': {}}
         s.schedule = {'foo': 'bar'}
         assert s.schedule == {'foo': 'bar'}
-        assert s._store[str('entries')] == s.schedule
+        assert s._store['entries'] == s.schedule
 
     def test_run_all_due_tasks_after_restart(self):
         scheduler_class, shelve = create_persistent_scheduler_w_call_logging()
@@ -633,7 +700,7 @@ class test_Service:
         assert isinstance(schedule, dict)
         assert isinstance(s.scheduler, beat.Scheduler)
         scheduled = list(schedule.keys())
-        for task_name in keys(sh[str('entries')]):
+        for task_name in sh['entries'].keys():
             assert task_name in scheduled
 
         s.sync()
@@ -678,8 +745,8 @@ class test_Service:
 
 class test_EmbeddedService:
 
-    @skip.unless_module('_multiprocessing', name='multiprocessing')
     def xxx_start_stop_process(self):
+        pytest.importorskip('_multiprocessing')
         from billiard.process import Process
 
         s = beat.EmbeddedService(self.app)
@@ -687,7 +754,7 @@ class test_EmbeddedService:
         assert isinstance(s.service, beat.Service)
         s.service = MockService()
 
-        class _Popen(object):
+        class _Popen:
             terminated = False
 
             def terminate(self):

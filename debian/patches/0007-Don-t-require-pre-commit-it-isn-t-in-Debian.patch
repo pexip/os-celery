@@ -1,0 +1,19 @@
+From: Stefano Rivera <stefanor@debian.org>
+Date: Sat, 1 Feb 2020 16:38:49 +0100
+Subject: Don't require pre-commit - it isn't in Debian
+
+---
+ requirements/test.txt | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/requirements/test.txt b/requirements/test.txt
+index fd0ba17..f7c9bed 100644
+--- a/requirements/test.txt
++++ b/requirements/test.txt
+@@ -6,6 +6,5 @@ pytest-timeout~=1.4.2
+ boto3>=1.9.178
+ python-dateutil<2.8.1,>=2.1; python_version < '3.0'
+ moto==1.3.7
+-pre-commit
+ -r extras/yaml.txt
+ -r extras/msgpack.txt

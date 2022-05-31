@@ -2,14 +2,29 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp| |ocbackerbadge| |ocsponsorbadge|
 
-:Version: 4.2.1 (latentcall)
+:Version: 5.0.0 (singularity)
 :Web: http://celeryproject.org/
 :Download: https://pypi.org/project/celery/
 :Source: https://github.com/celery/celery/
 :Keywords: task, queue, job, async, rabbitmq, amqp, redis,
   python, distributed, actors
 
---
+Donations
+=========
+
+This project relies on your generous donations.
+
+If you are using Celery to create a commercial product, please consider becoming our `backer`_ or our `sponsor`_ to ensure Celery's future.
+
+.. _`backer`: https://opencollective.com/celery#backer
+.. _`sponsor`: https://opencollective.com/celery#sponsor
+
+For enterprise
+==============
+
+Available as part of the Tidelift Subscription.
+
+The maintainers of ``celery`` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. `Learn more. <https://tidelift.com/subscription/pkg/pypi-celery?utm_source=pypi-celery&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
 
 What's a Task Queue?
 ====================
@@ -29,25 +44,26 @@ to high availability and horizontal scaling.
 
 Celery is written in Python, but the protocol can be implemented in any
 language. In addition to Python there's node-celery_ for Node.js,
-and a `PHP client`_.
+a `PHP client`_, `gocelery`_ for golang, and rusty-celery_ for Rust.
 
 Language interoperability can also be achieved by using webhooks
 in such a way that the client enqueues an URL to be requested by a worker.
 
 .. _node-celery: https://github.com/mher/node-celery
 .. _`PHP client`: https://github.com/gjedeer/celery-php
+.. _`gocelery`: https://github.com/gocelery/gocelery
+.. _rusty-celery: https://github.com/rusty-celery/rusty-celery
 
 What do I need?
 ===============
 
-Celery version 4.2 runs on,
+Celery version 5.0.0 runs on,
 
-- Python (2.7, 3.4, 3.5, 3.6)
-- PyPy (5.8)
+- Python (3.6, 3.7, 3.8)
+- PyPy3.6 (7.6)
 
 
-This is the last version to support Python 2.7,
-and from the next version (Celery 5.x) Python 3.5 or newer is required.
+This is the next version to of celery which will support Python 3.6 or newer.
 
 If you're running an older version of Python, you need to be running
 an older version of Celery:
@@ -55,6 +71,7 @@ an older version of Celery:
 - Python 2.6: Celery series 3.1 or earlier.
 - Python 2.5: Celery series 3.0 or earlier.
 - Python 2.4 was Celery series 2.2 or earlier.
+- Python 2.7: Celery 4.x series.
 
 Celery is a project with minimal funding,
 so we don't support Microsoft Windows.
@@ -72,7 +89,7 @@ Get Started
 ===========
 
 If this is the first time you're trying to use Celery, or you're
-new to Celery 4.2 coming from previous versions then you should read our
+new to Celery 5.0.0 coming from previous versions then you should read our
 getting started tutorials:
 
 - `First steps with Celery`_
@@ -202,6 +219,8 @@ Documentation
 The `latest documentation`_ is hosted at Read The Docs, containing user guides,
 tutorials, and an API reference.
 
+最新的中文文档托管在 https://www.celerycn.io/ 中，包含用户指南、教程、API接口等。
+
 .. _`latest documentation`: http://docs.celeryproject.org/en/latest/
 
 .. _celery-installation:
@@ -285,14 +304,26 @@ Transports and Backends
 :``celery[cassandra]``:
     for using Apache Cassandra as a result backend with DataStax driver.
 
+:``celery[azureblockblob]``:
+    for using Azure Storage as a result backend (using ``azure-storage``)
+
+:``celery[s3]``:
+    for using S3 Storage as a result backend.
+
 :``celery[couchbase]``:
     for using Couchbase as a result backend.
+
+:``celery[arangodb]``:
+    for using ArangoDB as a result backend.
 
 :``celery[elasticsearch]``:
     for using Elasticsearch as a result backend.
 
 :``celery[riak]``:
     for using Riak as a result backend.
+
+:``celery[cosmosdbsql]``:
+    for using Azure Cosmos DB as a result backend (using ``pydocumentdb``)
 
 :``celery[zookeeper]``:
     for using Zookeeper as a message transport.
@@ -404,7 +435,7 @@ to our issue tracker at https://github.com/celery/celery/issues/
 Wiki
 ====
 
-https://wiki.github.com/celery/celery/
+https://github.com/celery/celery/wiki
 
 Credits
 =======
@@ -487,7 +518,7 @@ file in the top distribution directory for the full license text.
     :target: https://pypi.org/project/celery/
 
 .. |pyimp| image:: https://img.shields.io/pypi/implementation/celery.svg
-    :alt: Support Python implementations.
+    :alt: Supported Python implementations.
     :target: https://pypi.org/project/celery/
 
 .. |ocbackerbadge| image:: https://opencollective.com/celery/backers/badge.svg
@@ -497,3 +528,7 @@ file in the top distribution directory for the full license text.
 .. |ocsponsorbadge| image:: https://opencollective.com/celery/sponsors/badge.svg
     :alt: Sponsors on Open Collective
     :target: #sponsors
+
+.. |downloads| image:: https://pepy.tech/badge/celery
+    :alt: Downloads
+    :target: https://pepy.tech/project/celery

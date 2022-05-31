@@ -1,110 +1,65 @@
 Source: celery
 Maintainer: Pexip AS <packaging@pexip.com>
-XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
+XSBC-Pexip-Original-Maintainer: Debian Python Team <team+python@tracker.debian.org>
 XSBC-Pexip-Original-Uploaders:
  Michael Fladischer <fladi@debian.org>,
  Brian May <bam@debian.org>,
 Section: python
 Priority: optional
 Build-Depends:
- debhelper (>= 11),
+ debhelper-compat (= 13),
  dh-python,
  docbook-to-man,
  dvipng,
  locales,
- python-all,
- python-billiard (>= 3.3.0.23),
- python-case,
- python-dateutil,
- python-doc,
- python-eventlet,
- python-gevent,
- python-kombu (>= 4.2.0),
- python-kombu-doc,
- python-mock (>= 1.0.1),
- python-nose,
- python-openssl,
- python-pyparsing,
- python-pytest,
- python-pytyrant,
- python-redis,
- python-setuptools,
- python-sqlalchemy,
- python-tz,
- python-unittest2,
- python-vine,
  python3-all,
- python3-billiard (>= 3.3.0.23),
+ python3-billiard (>= 3.6.3.0),
+ python3-boto3,
  python3-case,
+ python3-click-didyoumean,
+ python3-click-repl,
  python3-dateutil,
  python3-doc,
  python3-eventlet,
- python3-kombu (>= 4.2.0),
- python3-mock (>= 1.0.1),
+ python3-future (>=0.18.0),
+ python3-kombu (>= 5.0),
+ python3-memcache,
+ python3-mock,
+ python3-msgpack,
  python3-nose,
  python3-openssl,
+ python3-pymongo,
  python3-pyparsing,
  python3-pytest,
+ python3-pytest-timeout,
  python3-redis,
  python3-setuptools,
- python3-sphinx,
- python3-sphinx-celery,
+ python3-sphinx (>= 2.0.0),
+ python3-sphinx-celery (>= 2.0.0),
+ python3-sphinx-click,
  python3-sqlalchemy,
  python3-tz,
- python3-vine,
+ python3-vine (>= 5.0),
+ python3-yaml,
  texlive-latex-base,
  texlive-latex-extra,
-Standards-Version: 4.3.0
-Vcs-Browser: https://salsa.debian.org/python-team/modules/celery
-Vcs-Git: https://salsa.debian.org/python-team/modules/celery.git
+Standards-Version: 4.5.0
+Rules-Requires-Root: no
+Vcs-Browser: https://salsa.debian.org/python-team/packages/celery
+Vcs-Git: https://salsa.debian.org/python-team/packages/celery.git
 Homepage: http://www.celeryproject.org/
 XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
 
-Package: python-celery
+Package: celery
 Architecture: all
+Section: net
 Depends:
- python-billiard (>= 3.3.0.23),
- python-dateutil,
- python-kombu (>= 4.2.0),
- python-pkg-resources,
- python-tz,
- ${misc:Depends},
- ${python:Depends},
-Suggests:
- python-celery-doc,
- python-gevent,
- python-pytyrant,
- python-redis,
- python-sqlalchemy,
-Description: async task/job queue based on message passing (Python2 version)
- Celery is an open source asynchronous task queue/job queue based on
- distributed message passing. It is focused on real-time operation,
- but supports scheduling as well.
- .
- The execution units, called tasks, are executed concurrently on one
- or more worker nodes. Tasks can execute asynchronously (in the
- background) or synchronously (wait until ready).
- .
- Celery is written in Python, but the protocol can be implemented
- in any language. It can also operate with other languages using
- webhooks.
- .
- The recommended message broker is RabbitMQ, but limited support for Redis,
- Beanstalk, MongoDB, CouchDB, and databases (using SQLAlchemy or the Django
- ORM) is also available. Celery is easy to integrate with Django, using the
- python-django-celery package.
- .
- This package contains the Python 2 version of the library.
-
-Package: python-celery-common
-Architecture: all
-Depends:
- python3-celery (= ${binary:Version}) | python-celery (= ${binary:Version}),
+ python3-celery (= ${binary:Version}),
  ${misc:Depends},
 Breaks:
- python-celery (<< 3.1.12-2),
+ python-celery-common (<< 4.4.2-3),
 Replaces:
- python-celery (<< 3.1.12-2),
+ python-celery-common (<< 4.4.2-3),
 Description: async task/job queue based on message passing (common files)
  Celery is an open source asynchronous task queue/job queue based on
  distributed message passing. It is focused on real-time operation,
@@ -125,8 +80,23 @@ Description: async task/job queue based on message passing (common files)
  .
  This package contains the common files of the library.
 
+Package: python-celery-common
+Architecture: all
+Section: oldlibs
+Depends:
+ celery (>= ${binary:Version}),
+ ${misc:Depends},
+Description: async task/job queue - transitional dummy package
+ Celery is an open source asynchronous task queue/job queue based on
+ distributed message passing. It is focused on real-time operation,
+ but supports scheduling as well.
+ .
+ This is an empty transitional package to the "celery" package.
+ Once installed it can be safely removed.
+
 Package: python-celery-doc
 Architecture: all
+Multi-Arch: foreign
 Section: doc
 Depends:
  libjs-jquery,
@@ -156,10 +126,15 @@ Package: python3-celery
 Architecture: all
 Depends:
  python3-billiard (>= 3.3.0.23),
+ python3-click-didyoumean,
+ python3-click-repl,
  python3-dateutil,
- python3-kombu (>= 4.2.0),
+ python3-ephem,
+ python3-kombu (>= 5.0),
+ python3-memcache,
  python3-pkg-resources,
  python3-tz,
+ python3-vine (>= 5.0),
  ${misc:Depends},
  ${python3:Depends},
 Suggests:

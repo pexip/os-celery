@@ -1,13 +1,11 @@
-from __future__ import absolute_import, unicode_literals
+from unittest.mock import ANY, Mock
 
 import pytest
-from case import ANY, Mock
 from kombu import Exchange, Queue
 from kombu.utils.functional import maybe_evaluate
 
 from celery.app import routes
 from celery.exceptions import QueueNotFound
-from celery.five import items
 from celery.utils.imports import qualname
 
 
@@ -51,7 +49,13 @@ class RouteCase:
         self.mytask = mytask
 
     def assert_routes_to_queue(self, queue, router, name,
-                               args=[], kwargs={}, options={}):
+                               args=None, kwargs=None, options=None):
+        if options is None:
+            options = {}
+        if kwargs is None:
+            kwargs = {}
+        if args is None:
+            args = []
         assert router.route(options, name, args, kwargs)['queue'].name == queue
 
     def assert_routes_to_default_queue(self, router, name, *args, **kwargs):
@@ -73,17 +77,22 @@ class test_MapRoute(RouteCase):
         expand = E(self.app, self.app.amqp.queues)
         route = routes.MapRoute({self.mytask.name: self.b_queue})
         eroute = expand(route(self.mytask.name))
-        for key, value in items(self.b_queue):
+        for key, value in self.b_queue.items():
             assert eroute[key] == value
         assert route('celery.awesome') is None
 
     def test_route_for_task__glob(self):
+        from re import compile
+
         route = routes.MapRoute([
             ('proj.tasks.*', 'routeA'),
             ('demoapp.tasks.bar.*', {'exchange': 'routeB'}),
+            (compile(r'(video|image)\.tasks\..*'), {'queue': 'media'}),
         ])
         assert route('proj.tasks.foo') == {'queue': 'routeA'}
         assert route('demoapp.tasks.bar.moo') == {'exchange': 'routeB'}
+        assert route('video.tasks.foo') == {'queue': 'media'}
+        assert route('image.tasks.foo') == {'queue': 'media'}
         assert route('demoapp.foo.bar.moo') is None
 
     def test_expand_route_not_found(self):
@@ -190,7 +199,7 @@ class test_lookup_route(RouteCase):
             **{self.app.conf.task_default_queue: self.d_queue})
 
 
-class TestRouter(object):
+class TestRouter:
 
     def route_for_task(self, task, args, kwargs):
         if task == 'celery.xaza':

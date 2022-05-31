@@ -1,3 +1,157 @@
+celery (5.0.0-3) unstable; urgency=medium
+
+  * Team upload.
+  * d/tests/upstream: Use celery pytest plugin for autopkgtest too.
+    (Closes: #972926)
+
+ -- Michael Hudson-Doyle <mwhudson@debian.org>  Tue, 03 Nov 2020 13:08:49 +1300
+
+celery (5.0.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * Tighten dependency on python-kombu (>= 5.0)
+
+ -- Antonio Terceiro <terceiro@debian.org>  Mon, 26 Oct 2020 13:45:54 -0300
+
+celery (5.0.0-1) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Ondřej Nový ]
+  * d/control: Update Maintainer field with new Debian Python Team
+    contact address.
+  * d/control: Update Vcs-* fields with new Debian Python Team Salsa
+    layout.
+
+  [ Antonio Terceiro ]
+  * New upstream version 5.0.0
+
+  [ Thomas Goirand ]
+  * Add a new (build-)dependencies on:
+    - python3-click-repl
+    - python3-click-didyoumean
+  * Min version for python3-vine is now 5.0.
+  * Add build-depends:
+    - python3-pytest-timeout
+  * Add 0010-allow-any-version-of-pytest-timeout.patch.
+  * Add 0011-remove-pytest-celery-from-test-depends.patch.
+  * Add 0012-allow-any-pytest-version.patch.
+  * Add a debian/salsa-ci.yml.
+
+  [ Nicolas Dandrimont ]
+  * Use celery pytest plugin for tests
+  * Patch MongoDB backend test for the Debian version of pymongo.
+  * Add build-dependency on python3-sphinx-click.
+
+ -- Nicolas Dandrimont <olasd@debian.org>  Sat, 17 Oct 2020 01:31:50 +0200
+
+celery (4.4.6-1) unstable; urgency=low
+
+  * New upstream release (Closes: #963662).
+  * Drop upstream patch 21366ffe04aeb69ea08dc5c48c3b3155eeb443b5.patch.
+  * Refresh patches.
+  * Clean up .pytest_cache/CACHEDIR.TAG to allow two builds in a row.
+  * Add python3-future (>=0.18.0) to Build-Depends, required by tests.
+  * Skip randomly failing test_worker tests.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 12 Aug 2020 20:08:45 +0200
+
+celery (4.4.2-5) unstable; urgency=medium
+
+  * Team upload.
+  * Add missing Break+Replaces I forgot while doing the move.  Closes: #960506
+
+ -- Mattia Rizzolo <mattia@debian.org>  Tue, 19 May 2020 11:30:49 +0200
+
+celery (4.4.2-4) unstable; urgency=medium
+
+  * Team upload.
+  * Upload to unstable.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Tue, 12 May 2020 15:04:57 +0200
+
+celery (4.4.2-3) experimental; urgency=medium
+
+  * Team upload.
+  * Move the "celery" script to a new "celery" binary package and turn
+    python-celery-common into an empty transitional package.
+  * d/control: Mark python-celery-doc as Multi-Arch:foreign.
+  * Claim some copyright over debian/*.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 27 Apr 2020 22:38:40 +0200
+
+celery (4.4.2-2) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch from upstream to fix build with the new sphinx.  Closes: #958986
+  * Bump Build-Depends on python3-sphinx(-celery) to >= 2.0.0.
+  * d/control:
+    + Set Rules-Requires-Root:no.
+    + Bump debhelper compat level to 13.
+  * d/rules:
+    + Move another file from override_dh_clean to d/clean.
+    + Drop override_dh_install and rely on dh_fixperms to fix perms.
+    + Simplify the code using the new execute_after* overrides.
+    + Drop now unused variables.
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 27 Apr 2020 22:23:24 +0200
+
+celery (4.4.2-1) unstable; urgency=medium
+
+  * Team upload
+
+  [ Michael Fladischer ]
+  * Disable PGP signature check in uscan as upstream is not providing a
+    signature for current releases.
+  * Refresh patches.
+
+  [ Stefano Rivera ]
+  * Set -e in autopkgtests, so all failures are caught.
+  * Build-Depend on python3-boto3, python3-msgpack, python3-pymongo,
+    python3-yaml for tests.
+  * Patch:
+    - Don't require pre-commit, it isn't in Debian.
+    - Neither is moto.
+
+  [ Håvard Flaget Aasen ]
+  * New upstream version 4.4.2
+    - Changes in this release closes: #952217
+  * Update Standards-Version to 4.5.0
+  * Update versions for build-dependencies. closes: #913047
+  * Remove override_dh_installchangelogs, unneeded
+  * Rebase patches
+  * Remove patches
+    - 0005-Disable-pytest-3.3-log-capturing-to-avoid-changing-l.patch
+    - 0007-py37-skip-tests.diff
+  * Add patch
+    - 0011-disable-test-for-python3.8.patch
+  * Remove d/upstream/signing-key.asc and d/source/include-binaries
+  * Disable test from d/tests/upstream
+
+ -- Håvard Flaget Aasen <haavard_aasen@yahoo.no>  Wed, 25 Mar 2020 15:20:47 +0100
+
+celery (4.2.1-5) unstable; urgency=medium
+
+  * Team upload.
+  * Fix running tests with pytest 4.
+  * Don't try to run autopkgtests with Python 2.
+
+ -- Andrey Rahmatullin <wrar@debian.org>  Wed, 07 Aug 2019 18:12:10 +0500
+
+celery (4.2.1-4) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * Use debhelper-compat instead of debian/compat.
+
+  [ Michael Fladischer ]
+  * Bump Standards-Version to 4.4.0.
+  * Remove Python2 support.
+  * Remove unnecessary version constraint on python3-mock.
+  * Remove unnecessary Break and Replaces on older packages.
+  * Bump debhelper version to 12.
+
+ -- Michael Fladischer <fladi@debian.org>  Mon, 22 Jul 2019 09:39:34 +0200
+
 celery (4.2.1-3pexip3) pexip; urgency=medium
 
   * No-change rebuild
