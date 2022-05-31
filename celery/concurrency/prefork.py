@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
 """Prefork execution pool.
 
 Pool implementation using :mod:`multiprocessing`.
 """
-from __future__ import absolute_import, unicode_literals
-
 import os
 
 from billiard import forking_enable
@@ -16,7 +13,6 @@ from celery import platforms, signals
 from celery._state import _set_task_join_will_block, set_default_app
 from celery.app import trace
 from celery.concurrency.base import BasePool
-from celery.five import items
 from celery.utils.functional import noop
 from celery.utils.log import get_logger
 
@@ -73,7 +69,7 @@ def process_initializer(app, hostname):
         trace._tasks = app._tasks  # enables fast_trace_task optimization.
     # rebuild execution handler for all tasks.
     from celery.app.trace import build_tracer
-    for name, task in items(app.tasks):
+    for name, task in app.tasks.items():
         task.__trace__ = build_tracer(name, task, app.loader, hostname,
                                       app=app)
     from celery.worker import state as worker_state
@@ -104,11 +100,16 @@ class TaskPool(BasePool):
         forking_enable(self.forking_enable)
         Pool = (self.BlockingPool if self.options.get('threads', True)
                 else self.Pool)
+        proc_alive_timeout = (
+            self.app.conf.worker_proc_alive_timeout if self.app
+            else None
+        )
         P = self._pool = Pool(processes=self.limit,
                               initializer=process_initializer,
                               on_process_exit=process_destructor,
                               enable_timeouts=True,
                               synack=False,
+                              proc_alive_timeout=proc_alive_timeout,
                               **self.options)
 
         # Create proxy methods

@@ -1,12 +1,10 @@
-from __future__ import absolute_import, unicode_literals
+from unittest.mock import Mock
 
 import pytest
-from case import Mock
 
 from celery import uuid
 from celery.app import control
 from celery.exceptions import DuplicateNodenameWarning
-from celery.five import items
 from celery.utils.collections import LimitedSet
 
 
@@ -14,7 +12,7 @@ def _info_for_commandclass(type_):
     from celery.worker.control import Panel
     return [
         (name, info)
-        for name, info in items(Panel.meta)
+        for name, info in Panel.meta.items()
         if info.type == type_
     ]
 
@@ -46,7 +44,7 @@ class test_flatten_reply:
         with pytest.warns(DuplicateNodenameWarning) as w:
             nodes = control.flatten_reply(reply)
 
-        assert 'Received multiple replies from node name: {0}.'.format(
+        assert 'Received multiple replies from node name: {}.'.format(
             next(iter(reply[0]))) in str(w[0].message.args[0])
         assert 'foo@example.com' in nodes
         assert 'bar@example.com' in nodes
@@ -79,11 +77,15 @@ class test_inspect:
                                 limit=None,
                                 timeout=None,
                                 reply=True,
+                                pattern=None,
+                                matcher=None,
                                 **arguments):
         self.app.control.broadcast.assert_called_with(
             command,
             arguments=arguments,
             destination=destination or self.inspect.destination,
+            pattern=pattern or self.inspect.pattern,
+            matcher=matcher or self.inspect.destination,
             callback=callback or self.inspect.callback,
             connection=connection or self.inspect.connection,
             limit=limit if limit is not None else self.inspect.limit,
@@ -115,7 +117,7 @@ class test_inspect:
     def test_hello__with_revoked(self):
         revoked = LimitedSet(100)
         for i in range(100):
-            revoked.add('id{0}'.format(i))
+            revoked.add(f'id{i}')
         self.inspect.hello('george@vandelay.com', revoked=revoked._data)
         self.assert_broadcast_called(
             'hello', from_node='george@vandelay.com', revoked=revoked._data)
@@ -167,6 +169,16 @@ class test_inspect:
     def test_ping(self):
         self.inspect.ping()
         self.assert_broadcast_called('ping')
+
+    def test_ping_matcher_pattern(self):
+        orig_inspect = self.inspect
+        self.inspect = self.app.control.inspect(pattern=".*", matcher="pcre")
+        self.inspect.ping()
+        try:
+            self.assert_broadcast_called('ping', pattern=".*", matcher="pcre")
+        except AssertionError as e:
+            self.inspect = orig_inspect
+            raise e
 
     def test_active_queues(self):
         self.inspect.active_queues()
@@ -498,3 +510,12 @@ class test_Control:
         new_pool = Mock(name='new pool')
         amqp.producer_pool = new_pool
         assert new_pool is self.app.control.mailbox.producer_pool
+
+    def test_control_exchange__default(self):
+        c = control.Control(self.app)
+        assert c.mailbox.namespace == 'celery'
+
+    def test_control_exchange__setting(self):
+        self.app.conf.control_exchange = 'test_exchange'
+        c = control.Control(self.app)
+        assert c.mailbox.namespace == 'test_exchange'

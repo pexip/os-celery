@@ -19,12 +19,15 @@ We don't have to do compression manually, just set the tasks compression
 to "zlib", and the serializer to "pickle".
 
 """
-from __future__ import absolute_import, print_function, unicode_literals
+
 import re
+
 import requests
-from celery import task, group
+
+from celery import group, task
 from eventlet import Timeout
 from pybloom import BloomFilter
+
 try:
     from urllib.parse import urlsplit
 except ImportError:
@@ -42,7 +45,7 @@ def domain(url):
 
 @task(ignore_result=True, serializer='pickle', compression='zlib')
 def crawl(url, seen=None):
-    print('crawling: {0}'.format(url))
+    print(f'crawling: {url}')
     if not seen:
         seen = BloomFilter(capacity=50000, error_rate=0.0001)
 

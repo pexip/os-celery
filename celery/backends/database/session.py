@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 """SQLAlchemy session."""
-from __future__ import absolute_import, unicode_literals
-
 from kombu.utils.compat import register_after_fork
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,7 +14,7 @@ def _after_fork_cleanup_session(session):
     session._after_fork()
 
 
-class SessionManager(object):
+class SessionManager:
     """Manage SQLAlchemy sessions."""
 
     def __init__(self):
@@ -39,7 +36,9 @@ class SessionManager(object):
                 engine = self._engines[dburi] = create_engine(dburi, **kwargs)
                 return engine
         else:
-            return create_engine(dburi, poolclass=NullPool)
+            kwargs = {k: v for k, v in kwargs.items() if
+                      not k.startswith('pool')}
+            return create_engine(dburi, poolclass=NullPool, **kwargs)
 
     def create_session(self, dburi, short_lived_sessions=False, **kwargs):
         engine = self.get_engine(dburi, **kwargs)
@@ -47,8 +46,7 @@ class SessionManager(object):
             if short_lived_sessions or dburi not in self._sessions:
                 self._sessions[dburi] = sessionmaker(bind=engine)
             return engine, self._sessions[dburi]
-        else:
-            return engine, sessionmaker(bind=engine)
+        return engine, sessionmaker(bind=engine)
 
     def prepare_models(self, engine):
         if not self.prepared:

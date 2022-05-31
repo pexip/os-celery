@@ -61,6 +61,12 @@ command:
 
     $ sudo apt-get install rabbitmq-server
 
+Or, if you want to run it on Docker execute this:
+
+.. code-block:: console
+
+    $ docker run -d -p 5672:5672 rabbitmq
+
 When the command completes, the broker will already be running in the background,
 ready to move messages for you: ``Starting rabbitmq-server: SUCCESS``.
 
@@ -79,6 +85,12 @@ the event of abrupt termination or power failures. Detailed information about us
 :ref:`broker-redis`
 
 .. _`Redis`: https://redis.io/
+
+If you want to run it on Docker execute this:
+
+.. code-block:: console
+
+    $ docker run -d -p 6379:6379 redis
 
 Other brokers
 -------------
@@ -206,7 +218,7 @@ Keeping Results
 If you want to keep track of the tasks' states, Celery needs to store or send
 the states somewhere. There are several
 built-in result backends to choose from: `SQLAlchemy`_/`Django`_ ORM,
-`Memcached`_, `Redis`_, :ref:`RPC <conf-rpc-result-backend>` (`RabbitMQ`_/AMQP),
+`MongoDB`_, `Memcached`_, `Redis`_, :ref:`RPC <conf-rpc-result-backend>` (`RabbitMQ`_/AMQP),
 and -- or you can define your own.
 
 .. _`Memcached`: http://memcached.org
@@ -274,9 +286,9 @@ original traceback:
 
 .. warning::
 
-    Backends use resources to store and transmit results. To ensure 
-    that resources are released, you must eventually call 
-    :meth:`~@AsyncResult.get` or :meth:`~@AsyncResult.forget` on 
+    Backends use resources to store and transmit results. To ensure
+    that resources are released, you must eventually call
+    :meth:`~@AsyncResult.get` or :meth:`~@AsyncResult.forget` on
     EVERY :class:`~@AsyncResult` instance returned after calling
     a task.
 
