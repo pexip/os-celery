@@ -58,7 +58,7 @@ Standards-Version: 4.3.0
 Vcs-Browser: https://salsa.debian.org/python-team/modules/celery
 Vcs-Git: https://salsa.debian.org/python-team/modules/celery.git
 Homepage: http://www.celeryproject.org/
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster
+XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
 
 Package: python-celery
 Architecture: all
