@@ -1,3 +1,9 @@
+celery (5.0.0-3pexip1) pexip; urgency=medium
+
+  * Initial bullseye build
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 02 Jun 2022 14:42:04 +0100
+
 celery (5.0.0-3) unstable; urgency=medium
 
   * Team upload.
