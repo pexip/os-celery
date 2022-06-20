@@ -11,7 +11,7 @@ override_dh_installman:
 
 override_dh_auto_test:
 	PYTHONPATH=. LC_ALL=C.UTF-8 \
-	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx -k-test_worker -p celery.contrib.pytest'"
+	dh_auto_test -- --system=custom --test-args="{interpreter} setup.py test -a '-k-test_sphinx -k-test_worker -k-test_mongodb -p celery.contrib.pytest'"
 
 execute_after_dh_auto_install:
 	rm -rf $(CURDIR)/debian/python3-celery/usr/bin
