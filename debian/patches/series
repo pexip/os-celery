@@ -12,3 +12,4 @@
 0013-Update-test-for-the-Debian-version-of-pymongo.patch
 # pexip
 node_alive.patch
+9999_pexip_disable_cassandra_tests.patch
