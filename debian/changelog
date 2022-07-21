@@ -1,3 +1,9 @@
+celery (5.0.0-3pexip3) pexip-bullseye; urgency=medium
+
+  * Remove python3-ephem and python3-memcache support / dependencies.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 21 Jul 2022 11:11:33 +0100
+
 celery (5.0.0-3pexip2) pexip-bullseye; urgency=medium
 
   * Main bullseye build
