@@ -1,6 +1,6 @@
 --- a/celery/apps/multi.py
 +++ b/celery/apps/multi.py
-@@ -178,7 +178,7 @@
+@@ -199,7 +199,7 @@
              try:
                  os.kill(pid, sig)
              except OSError as exc:
