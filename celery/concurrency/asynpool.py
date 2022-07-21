@@ -16,12 +16,12 @@ import errno
 import gc
 import os
 import select
-import sys
 import time
 from collections import Counter, deque, namedtuple
 from io import BytesIO
 from numbers import Integral
 from pickle import HIGHEST_PROTOCOL
+from struct import pack, unpack, unpack_from
 from time import sleep
 from weakref import WeakValueDictionary, ref
 
@@ -35,7 +35,6 @@ from kombu.utils.eventio import SELECT_BAD_FD
 from kombu.utils.functional import fxrange
 from vine import promise
 
-from celery.platforms import pack, unpack, unpack_from
 from celery.utils.functional import noop
 from celery.utils.log import get_logger
 from celery.worker import state as worker_state
@@ -47,21 +46,15 @@ try:
     from _billiard import read as __read__
     readcanbuf = True
 
-    # unpack_from supports memoryview in 2.7.6 and 3.3+
-    if sys.version_info[0] == 2 and sys.version_info < (2, 7, 6):
-
-        def unpack_from(fmt, view, _unpack_from=unpack_from):  # noqa
-            return _unpack_from(fmt, view.tobytes())  # <- memoryview
-
 except ImportError:  # pragma: no cover
 
-    def __read__(fd, buf, size, read=os.read):  # noqa
+    def __read__(fd, buf, size, read=os.read):
         chunk = read(fd, size)
         n = len(chunk)
         if n != 0:
             buf.write(chunk)
         return n
-    readcanbuf = False  # noqa
+    readcanbuf = False
 
     def unpack_from(fmt, iobuf, unpack=unpack):  # noqa
         return unpack(fmt, iobuf.getvalue())  # <-- BytesIO
@@ -84,6 +77,7 @@ SCHED_STRATEGY_FAIR = 4
 
 SCHED_STRATEGIES = {
     None: SCHED_STRATEGY_FAIR,
+    'default': SCHED_STRATEGY_FAIR,
     'fast': SCHED_STRATEGY_FCFS,
     'fcfs': SCHED_STRATEGY_FCFS,
     'fair': SCHED_STRATEGY_FAIR,
@@ -411,6 +405,9 @@ class AsynPool(_pool.Pool):
     ResultHandler = ResultHandler
     Worker = Worker
 
+    #: Set by :meth:`register_with_event_loop` after running the first time.
+    _registered_with_event_loop = False
+
     def WorkerProcess(self, worker):
         worker = super().WorkerProcess(worker)
         worker.dead = False
@@ -529,7 +526,11 @@ class AsynPool(_pool.Pool):
         for handler, interval in self.timers.items():
             hub.call_repeatedly(interval, handler)
 
-        hub.on_tick.add(self.on_poll_start)
+        # Add on_poll_start to the event loop only once to prevent duplication
+        # when the Consumer restarts due to a connection error.
+        if not self._registered_with_event_loop:
+            hub.on_tick.add(self.on_poll_start)
+            self._registered_with_event_loop = True
 
     def _create_timelimit_handlers(self, hub):
         """Create handlers used to implement time limits."""
@@ -984,10 +985,14 @@ class AsynPool(_pool.Pool):
     def flush(self):
         if self._state == TERMINATE:
             return
-        # cancel all tasks that haven't been accepted so that NACK is sent.
-        for job in self._cache.values():
+        # cancel all tasks that haven't been accepted so that NACK is sent
+        # if synack is enabled.
+        for job in tuple(self._cache.values()):
             if not job._accepted:
-                job._cancel()
+                if self.synack:
+                    job._cancel()
+                else:
+                    job.discard()
 
         # clear the outgoing buffer as the tasks will be redelivered by
         # the broker anyway.
@@ -1070,7 +1075,7 @@ class AsynPool(_pool.Pool):
                     if owner is None)
 
     def on_grow(self, n):
-        """Grow the pool by ``n`` proceses."""
+        """Grow the pool by ``n`` processes."""
         diff = max(self._processes - len(self._queues), 0)
         if diff:
             self._queues.update({
@@ -1250,7 +1255,7 @@ class AsynPool(_pool.Pool):
         """Called when a job was partially written to exited child."""
         # worker terminated by signal:
         # we cannot reuse the sockets again, because we don't know if
-        # the process wrote/read anything frmo them, and if so we cannot
+        # the process wrote/read anything from them, and if so we cannot
         # restore the message boundaries.
         if not job._accepted:
             # job was not acked, so find another worker to send it to.
