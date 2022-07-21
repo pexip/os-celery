@@ -184,7 +184,7 @@ docs/glossary.rst
 docs/index.rst
 docs/make.bat
 docs/spelling_wordlist.txt
-docs/whatsnew-5.0.rst
+docs/whatsnew-5.2.rst
 docs/_ext/celerydocs.py
 docs/_static/.keep
 docs/_templates/sidebardonations.html
@@ -195,10 +195,10 @@ docs/getting-started/index.rst
 docs/getting-started/introduction.rst
 docs/getting-started/next-steps.rst
 docs/getting-started/resources.rst
-docs/getting-started/brokers/index.rst
-docs/getting-started/brokers/rabbitmq.rst
-docs/getting-started/brokers/redis.rst
-docs/getting-started/brokers/sqs.rst
+docs/getting-started/backends-and-brokers/index.rst
+docs/getting-started/backends-and-brokers/rabbitmq.rst
+docs/getting-started/backends-and-brokers/redis.rst
+docs/getting-started/backends-and-brokers/sqs.rst
 docs/history/changelog-1.0.rst
 docs/history/changelog-2.0.rst
 docs/history/changelog-2.1.rst
@@ -213,6 +213,8 @@ docs/history/changelog-4.1.rst
 docs/history/changelog-4.2.rst
 docs/history/changelog-4.3.rst
 docs/history/changelog-4.4.rst
+docs/history/changelog-5.0.rst
+docs/history/changelog-5.1.rst
 docs/history/index.rst
 docs/history/whatsnew-2.5.rst
 docs/history/whatsnew-3.0.rst
@@ -222,6 +224,8 @@ docs/history/whatsnew-4.1.rst
 docs/history/whatsnew-4.2.rst
 docs/history/whatsnew-4.3.rst
 docs/history/whatsnew-4.4.rst
+docs/history/whatsnew-5.0.rst
+docs/history/whatsnew-5.1.rst
 docs/images/celery-banner-small.png
 docs/images/celery-banner.png
 docs/images/celery_128.png
@@ -325,7 +329,6 @@ docs/reference/celery.apps.beat.rst
 docs/reference/celery.apps.multi.rst
 docs/reference/celery.apps.worker.rst
 docs/reference/celery.beat.rst
-docs/reference/celery.bin.amqp.rst
 docs/reference/celery.bin.base.rst
 docs/reference/celery.bin.beat.rst
 docs/reference/celery.bin.call.rst
@@ -494,7 +497,6 @@ requirements/extras/elasticsearch.txt
 requirements/extras/eventlet.txt
 requirements/extras/gevent.txt
 requirements/extras/librabbitmq.txt
-requirements/extras/lzma.txt
 requirements/extras/memcache.txt
 requirements/extras/mongodb.txt
 requirements/extras/msgpack.txt
@@ -505,6 +507,7 @@ requirements/extras/redis.txt
 requirements/extras/s3.txt
 requirements/extras/slmq.txt
 requirements/extras/solar.txt
+requirements/extras/sphinxautobuild.txt
 requirements/extras/sqlalchemy.txt
 requirements/extras/sqs.txt
 requirements/extras/tblib.txt
@@ -516,16 +519,17 @@ requirements/extras/zstd.txt
 t/__init__.py
 t/skip.py
 t/benchmarks/bench_worker.py
-t/distro/test_CI_reqs.py
 t/integration/__init__.py
 t/integration/conftest.py
 t/integration/tasks.py
 t/integration/test_backend.py
 t/integration/test_canvas.py
+t/integration/test_inspect.py
 t/integration/test_security.py
 t/integration/test_tasks.py
 t/unit/__init__.py
 t/unit/conftest.py
+t/unit/test_canvas.py
 t/unit/app/__init__.py
 t/unit/app/test_amqp.py
 t/unit/app/test_annotations.py

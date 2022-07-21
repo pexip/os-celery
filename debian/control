@@ -17,10 +17,12 @@ Build-Depends:
  python3-boto3,
  python3-case,
  python3-click-didyoumean,
+ python3-click-plugins,
  python3-click-repl,
  python3-dateutil,
  python3-doc,
  python3-eventlet,
+ python3-flaky,
  python3-future (>=0.18.0),
  python3-kombu (>= 5.0),
  python3-mock,
@@ -30,6 +32,7 @@ Build-Depends:
  python3-pymongo,
  python3-pyparsing,
  python3-pytest,
+ python3-pytest-subtests,
  python3-pytest-timeout,
  python3-redis,
  python3-setuptools,
@@ -42,11 +45,11 @@ Build-Depends:
  python3-yaml,
  texlive-latex-base,
  texlive-latex-extra,
-Standards-Version: 4.5.0
+Standards-Version: 4.6.0.1
 Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/python-team/packages/celery
 Vcs-Git: https://salsa.debian.org/python-team/packages/celery.git
-Homepage: http://www.celeryproject.org/
+Homepage: https://github.com/celery/celery
 XS-Pexip-Upstream: http://deb.debian.org/debian/ bookworm
 
 Package: celery

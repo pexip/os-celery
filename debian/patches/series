@@ -2,14 +2,14 @@
 0002-privacy.patch
 0003-Set-shell-in-su-invocation.patch
 0004-Disable-intershpinx-mapping-for-now.patch
-0006-Fix-passing-options-to-pytest.patch
-0007-Don-t-require-pre-commit-it-isn-t-in-Debian.patch
-0008-Moto-isn-t-packaged-for-Debian.patch
-0009-disable-test-for-python3.8.patch
-0010-allow-any-version-of-pytest-timeout.patch
-0011-remove-pytest-celery-from-test-depends.patch
-0012-allow-any-pytest-version.patch
-0013-Update-test-for-the-Debian-version-of-pymongo.patch
+0005-Fix-passing-options-to-pytest.patch
+0006-Don-t-require-pre-commit-it-isn-t-in-Debian.patch
+0007-Moto-isn-t-packaged-for-Debian.patch
+0008-disable-test-for-python3.8.patch
+0009-allow-any-version-of-pytest-timeout.patch
+0010-remove-pytest-celery-from-test-depends.patch
+0011-allow-any-pytest-version.patch
 # pexip
 node_alive.patch
 9999_pexip_disable_cassandra_tests.patch
+

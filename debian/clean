@@ -5,6 +5,7 @@ test.db
 celery.egg-info/requires.txt
 celery.egg-info/PKG-INFO
 celery.egg-info/SOURCES.txt
+celery.egg-info/entry_points.txt
 .pytest_cache/README.md
 .pytest_cache/CACHEDIR.TAG
 .pytest_cache/v/cache/nodeids

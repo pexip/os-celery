@@ -1,6 +1,10 @@
 #!/usr/bin/make -f
 
 export PYBUILD_NAME=celery
+export PYBUILD_AFTER_TEST=rm -rf {build_dir}/test.db {build_dir}/14
+export PYBUILD_TEST_ARGS= --ignore=t/unit/backends/test_base.py --ignore=t/unit/backends/test_rpc.py --ignore=t/unit/contrib/test_pytest.py --ignore=t/unit/concurrency/test_eventlet.py --ignore=t/unit/concurrency/test_prefork.py -k "not test_check_privileges[accept_content0] and not test_check_privileges[accept_content1] and not test_check_privileges[accept_content2] and not test_regression_worker_startup_info and not test_with_guid and not test_only_gid and not test_init_mongodb_dnspython2_pymongo3_seedlist" t/unit
+export PYTEST_PLUGINS=celery.contrib.pytest
+
 
 %:
 	dh $@ --with python3,sphinxdoc --buildsystem=pybuild

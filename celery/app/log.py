@@ -41,7 +41,7 @@ class TaskFormatter(ColorFormatter):
         else:
             record.__dict__.setdefault('task_name', '???')
             record.__dict__.setdefault('task_id', '???')
-        return ColorFormatter.format(self, record)
+        return super().format(record)
 
 
 class Logging:
@@ -226,7 +226,7 @@ class Logging:
         logfile = sys.__stderr__ if logfile is None else logfile
         if hasattr(logfile, 'write'):
             return logging.StreamHandler(logfile)
-        return WatchedFileHandler(logfile)
+        return WatchedFileHandler(logfile, encoding='utf-8')
 
     def _has_handler(self, logger):
         return any(
@@ -245,6 +245,6 @@ class Logging:
     def already_setup(self):
         return self._setup
 
-    @already_setup.setter  # noqa
+    @already_setup.setter
     def already_setup(self, was_setup):
         self._setup = was_setup

@@ -1,12 +1,14 @@
 """Actual App instance implementation."""
 import inspect
 import os
+import sys
 import threading
 import warnings
 from collections import UserDict, defaultdict, deque
 from datetime import datetime
 from operator import attrgetter
 
+from click.exceptions import Exit
 from kombu import pools
 from kombu.clocks import LamportClock
 from kombu.common import oid_from
@@ -30,7 +32,7 @@ from celery.utils.functional import first, head_from_fun, maybe_list
 from celery.utils.imports import gen_task_name, instantiate, symbol_by_name
 from celery.utils.log import get_logger
 from celery.utils.objects import FallbackContext, mro_lookup
-from celery.utils.time import timezone, to_utc
+from celery.utils.time import maybe_make_aware, timezone, to_utc
 
 # Load all builtin tasks
 from . import builtins  # noqa
@@ -204,6 +206,8 @@ class Celery:
     task_cls = 'celery.app.task:Task'
     registry_cls = 'celery.app.registry:TaskRegistry'
 
+    #: Thread local storage.
+    _local = None
     _fixups = None
     _pool = None
     _conf = None
@@ -227,6 +231,9 @@ class Celery:
                  changes=None, config_source=None, fixups=None, task_cls=None,
                  autofinalize=True, namespace=None, strict_typing=True,
                  **kwargs):
+
+        self._local = threading.local()
+
         self.clock = LamportClock()
         self.main = main
         self.amqp_cls = amqp or self.amqp_cls
@@ -267,8 +274,10 @@ class Celery:
         self.__autoset('broker_url', broker)
         self.__autoset('result_backend', backend)
         self.__autoset('include', include)
-        self.__autoset('broker_use_ssl', kwargs.get('broker_use_ssl'))
-        self.__autoset('redis_backend_use_ssl', kwargs.get('redis_backend_use_ssl'))
+
+        for key, value in kwargs.items():
+            self.__autoset(key, value)
+
         self._conf = Settings(
             PendingConfiguration(
                 self._preconf, self._finalize_pending_conf),
@@ -295,6 +304,10 @@ class Celery:
         self.on_after_finalize = Signal(name='app.on_after_finalize')
         self.on_after_fork = Signal(name='app.on_after_fork')
 
+        # Boolean signalling, whether fast_trace_task are enabled.
+        # this attribute is set in celery.worker.trace and checked by celery.worker.request
+        self.use_fast_trace_task = False
+
         self.on_init()
         _register_app(self)
 
@@ -310,7 +323,7 @@ class Celery:
         """Optional callback called at init."""
 
     def __autoset(self, key, value):
-        if value:
+        if value is not None:
             self._preconf[key] = value
             self._preconf_set_by_auto.add(key)
 
@@ -341,6 +354,41 @@ class Celery:
         """
         self._pool = None
         _deregister_app(self)
+
+    def start(self, argv=None):
+        """Run :program:`celery` using `argv`.
+
+        Uses :data:`sys.argv` if `argv` is not specified.
+        """
+        from celery.bin.celery import celery
+
+        celery.params[0].default = self
+
+        if argv is None:
+            argv = sys.argv
+
+        try:
+            celery.main(args=argv, standalone_mode=False)
+        except Exit as e:
+            return e.exit_code
+        finally:
+            celery.params[0].default = None
+
+    def worker_main(self, argv=None):
+        """Run :program:`celery worker` using `argv`.
+
+        Uses :data:`sys.argv` if `argv` is not specified.
+        """
+        if argv is None:
+            argv = sys.argv
+
+        if 'worker' not in argv:
+            raise ValueError(
+                "The worker sub-command must be specified in argv.\n"
+                "Use app.start() to programmatically start other commands."
+            )
+
+        self.start(argv=argv)
 
     def task(self, *args, **opts):
         """Decorator to create a task class out of any callable.
@@ -428,6 +476,7 @@ class Celery:
                 '_decorated': True,
                 '__doc__': fun.__doc__,
                 '__module__': fun.__module__,
+                '__annotations__': fun.__annotations__,
                 '__header__': staticmethod(head_from_fun(fun, bound=bind)),
                 '__wrapped__': run}, **options))()
             # for some reason __qualname__ cannot be set in type()
@@ -443,7 +492,7 @@ class Celery:
             task = self._tasks[name]
         return task
 
-    def register_task(self, task):
+    def register_task(self, task, **options):
         """Utility for registering a task-based class.
 
         Note:
@@ -456,7 +505,7 @@ class Celery:
             task_cls = type(task)
             task.name = self.gen_task_name(
                 task_cls.__name__, task_cls.__module__)
-        add_autoretry_behaviour(task)
+        add_autoretry_behaviour(task, **options)
         self.tasks[task.name] = task
         task._app = self
         task.bind(self)
@@ -648,8 +697,8 @@ class Celery:
     def _autodiscover_tasks_from_fixups(self, related_name):
         return self._autodiscover_tasks_from_names([
             pkg for fixup in self._fixups
-            for pkg in fixup.autodiscover_tasks()
             if hasattr(fixup, 'autodiscover_tasks')
+            for pkg in fixup.autodiscover_tasks()
         ], related_name=related_name)
 
     def send_task(self, name, args=None, kwargs=None, countdown=None,
@@ -680,9 +729,30 @@ class Celery:
                 'task_always_eager has no effect on send_task',
             ), stacklevel=2)
 
-        ignored_result = options.pop('ignore_result', False)
+        ignore_result = options.pop('ignore_result', False)
         options = router.route(
             options, route_name or name, args, kwargs, task_type)
+        if expires is not None:
+            if isinstance(expires, datetime):
+                expires_s = (maybe_make_aware(expires) - self.now()).total_seconds()
+            else:
+                expires_s = expires
+
+            if expires_s < 0:
+                logger.warning(
+                    f"{task_id} has an expiration date in the past ({-expires_s}s ago).\n"
+                    "We assume this is intended and so we have set the "
+                    "expiration date to 0 instead.\n"
+                    "According to RabbitMQ's documentation:\n"
+                    "\"Setting the TTL to 0 causes messages to be expired upon "
+                    "reaching a queue unless they can be delivered to a "
+                    "consumer immediately.\"\n"
+                    "If this was unintended, please check the code which "
+                    "published this task."
+                )
+                expires_s = 0
+
+            options["expiration"] = expires_s
 
         if not root_id or not parent_id:
             parent = self.current_worker_task
@@ -700,9 +770,10 @@ class Celery:
             task_id, name, args, kwargs, countdown, eta, group_id, group_index,
             expires, retries, chord,
             maybe_list(link), maybe_list(link_error),
-            reply_to or self.oid, time_limit, soft_time_limit,
+            reply_to or self.thread_oid, time_limit, soft_time_limit,
             self.conf.task_send_sent_event,
             root_id, parent_id, shadow, chain,
+            ignore_result=ignore_result,
             argsrepr=options.get('argsrepr'),
             kwargsrepr=options.get('kwargsrepr'),
         )
@@ -712,14 +783,14 @@ class Celery:
 
         with self.producer_or_acquire(producer) as P:
             with P.connection._reraise_as_library_errors():
-                if not ignored_result:
+                if not ignore_result:
                     self.backend.on_task_call(P, task_id)
                 amqp.send_task_message(P, name, message, **options)
         result = (result_cls or self.AsyncResult)(task_id)
         # We avoid using the constructor since a custom result class
         # can be used, in which case the constructor may still use
         # the old signature.
-        result.ignored = ignored_result
+        result.ignored = ignore_result
 
         if add_to_parent:
             if not have_parent:
@@ -1022,7 +1093,7 @@ class Celery:
         self.close()
 
     def __repr__(self):
-        return '<{} {}>'.format(type(self).__name__, appstr(self))
+        return f'<{type(self).__name__} {appstr(self)}>'
 
     def __reduce__(self):
         if self._using_v1_reduce:
@@ -1158,15 +1229,28 @@ class Celery:
         # which would not work if each thread has a separate id.
         return oid_from(self, threads=False)
 
+    @property
+    def thread_oid(self):
+        """Per-thread unique identifier for this app."""
+        try:
+            return self._local.oid
+        except AttributeError:
+            self._local.oid = new_oid = oid_from(self, threads=True)
+            return new_oid
+
     @cached_property
     def amqp(self):
         """AMQP related functionality: :class:`~@amqp`."""
         return instantiate(self.amqp_cls, app=self)
 
-    @cached_property
+    @property
     def backend(self):
         """Current backend instance."""
-        return self._get_backend()
+        try:
+            return self._local.backend
+        except AttributeError:
+            self._local.backend = new_backend = self._get_backend()
+            return new_backend
 
     @property
     def conf(self):
@@ -1176,7 +1260,7 @@ class Celery:
         return self._conf
 
     @conf.setter
-    def conf(self, d):  # noqa
+    def conf(self, d):
         self._conf = d
 
     @cached_property
@@ -1238,4 +1322,4 @@ class Celery:
         return timezone.get_timezone(conf.timezone)
 
 
-App = Celery  # noqa: E305 XXX compat
+App = Celery  # XXX compat

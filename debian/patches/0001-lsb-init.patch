@@ -10,12 +10,12 @@ Forwarded: no
 
 Patch-Name: lsb-init.patch
 ---
- extra/generic-init.d/celerybeat | 12 ++++++++++++
+ extra/generic-init.d/celerybeat | 13 +++++++++++++
  extra/generic-init.d/celeryd    | 11 +++++++++++
- 2 files changed, 23 insertions(+)
+ 2 files changed, 24 insertions(+)
 
 diff --git a/extra/generic-init.d/celerybeat b/extra/generic-init.d/celerybeat
-index 8f97790..fc14ce1 100755
+index c875e33..47c34ef 100755
 --- a/extra/generic-init.d/celerybeat
 +++ b/extra/generic-init.d/celerybeat
 @@ -15,11 +15,15 @@
@@ -42,10 +42,10 @@ index 8f97790..fc14ce1 100755
  if test -f /etc/default/celeryd; then
      scripts="/etc/default/celeryd"
      _config_sanity /etc/default/celeryd
-@@ -111,6 +116,13 @@ DEFAULT_PID_FILE="/var/run/celery/beat.pid"
- DEFAULT_LOG_FILE="/var/log/celery/beat.log"
- DEFAULT_LOG_LEVEL="INFO"
- DEFAULT_CELERYBEAT="$CELERY_BIN beat"
+@@ -118,6 +123,14 @@ CELERYBEAT_LOG_LEVEL=${CELERYBEAT_LOG_LEVEL:-${CELERYBEAT_LOGLEVEL:-$DEFAULT_LOG
+ CELERYBEAT_SU=${CELERYBEAT_SU:-"su"}
+ CELERYBEAT_SU_ARGS=${CELERYBEAT_SU_ARGS:-""}
+ 
 +DEFAULT_ENABLED="false"
 +
 +ENABLED=${ENABLED:-$DEFAULT_ENABLED}
@@ -53,11 +53,12 @@ index 8f97790..fc14ce1 100755
 +    echo "celerybeat daemon disabled - see $scripts."
 +    exit 0
 +fi
- 
- CELERYBEAT=${CELERYBEAT:-$DEFAULT_CELERYBEAT}
- CELERYBEAT_LOG_LEVEL=${CELERYBEAT_LOG_LEVEL:-${CELERYBEAT_LOGLEVEL:-$DEFAULT_LOG_LEVEL}}
++
+ # Sets --app argument for CELERY_BIN
+ CELERY_APP_ARG=""
+ if [ ! -z "$CELERY_APP" ]; then
 diff --git a/extra/generic-init.d/celeryd b/extra/generic-init.d/celeryd
-index 56d92be..491161d 100755
+index b928eeb..c93de50 100755
 --- a/extra/generic-init.d/celeryd
 +++ b/extra/generic-init.d/celeryd
 @@ -16,6 +16,7 @@
