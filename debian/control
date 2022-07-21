@@ -47,7 +47,7 @@ Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/python-team/packages/celery
 Vcs-Git: https://salsa.debian.org/python-team/packages/celery.git
 Homepage: http://www.celeryproject.org/
-XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
+XS-Pexip-Upstream: http://deb.debian.org/debian/ bookworm
 
 Package: celery
 Architecture: all
