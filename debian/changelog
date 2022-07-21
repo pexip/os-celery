@@ -1,3 +1,9 @@
+celery (5.2.6-1pexip1) pexip-bullseye; urgency=medium
+
+  * Backport bookworm version.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 21 Jul 2022 16:07:07 +0100
+
 celery (5.2.6-1) unstable; urgency=low
 
   * New upstream release.
