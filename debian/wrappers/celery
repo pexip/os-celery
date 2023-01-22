@@ -11,7 +11,7 @@ elif command -v python2.6 > /dev/null && test -e /usr/lib/python2.6/dist-package
 then
     exec python2.6 "$0" "$@"
 else
-    echo "Cannot find installed version of python-django or python3-django." >&2
+    echo "Cannot find installed version of python-celery or python3-celery." >&2
     exit 1
 fi
 
