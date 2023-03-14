@@ -13,7 +13,7 @@ Build-Depends:
  dvipng,
  locales,
  python3-all,
- python3-billiard (>= 4.0.2),
+ python3-billiard,
  python3-boto3,
  python3-case,
  python3-click-didyoumean,
@@ -126,7 +126,7 @@ Description: async task/job queue based on message passing (Documentation)
 Package: python3-celery
 Architecture: all
 Depends:
- python3-billiard (>= 4.0.2),
+ python3-billiard,
  python3-click-didyoumean,
  python3-click-repl,
  python3-dateutil,
