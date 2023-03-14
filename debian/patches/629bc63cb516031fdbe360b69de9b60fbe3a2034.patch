@@ -1,0 +1,151 @@
+From 629bc63cb516031fdbe360b69de9b60fbe3a2034 Mon Sep 17 00:00:00 2001
+From: Tomer Nosrati <tomer.nosrati@kcg.tech>
+Date: Thu, 6 Oct 2022 09:52:21 +0300
+Subject: [PATCH] Fixed error handling bugs due to upgrade to a newer version
+ of billiard (#7781)
+
+* Bump Billiard to 4.0.2
+
+* Defaults are already installed so pip reports a conflict
+
+* Fixed error handling bugs due to upgrade to a newer version of billiard
+
+Co-authored-by: Omer Katz <omer.katz@kcg.tech>
+---
+ celery/app/task.py               |  4 +++-
+ celery/worker/request.py         | 19 ++++++++++++++-----
+ requirements/default.txt         |  2 +-
+ t/unit/utils/test_collections.py |  4 ++--
+ t/unit/worker/test_request.py    |  8 ++++----
+ tox.ini                          |  1 -
+ 6 files changed, 24 insertions(+), 14 deletions(-)
+
+--- a/celery/app/task.py
++++ b/celery/app/task.py
+@@ -1,7 +1,7 @@
+ """Task implementation: request context and the task base class."""
+ import sys
+ 
+-from billiard.einfo import ExceptionInfo
++from billiard.einfo import ExceptionInfo, ExceptionWithTraceback
+ from kombu import serialization
+ from kombu.exceptions import OperationalError
+ from kombu.utils.uuid import uuid
+@@ -794,6 +794,8 @@
+         retval = ret.retval
+         if isinstance(retval, ExceptionInfo):
+             retval, tb = retval.exception, retval.traceback
++            if isinstance(retval, ExceptionWithTraceback):
++                retval = retval.exc
+         if isinstance(retval, Retry) and retval.sig is not None:
+             return retval.sig.apply(retries=retries + 1)
+         state = states.SUCCESS if ret.info is None else ret.info.state
+--- a/celery/worker/request.py
++++ b/celery/worker/request.py
+@@ -10,6 +10,7 @@
+ from weakref import ref
+ 
+ from billiard.common import TERM_SIGNAME
++from billiard.einfo import ExceptionWithTraceback
+ from kombu.utils.encoding import safe_repr, safe_str
+ from kombu.utils.objects import cached_property
+ 
+@@ -500,8 +501,11 @@
+         """Handler called if the task was successfully processed."""
+         failed, retval, runtime = failed__retval__runtime
+         if failed:
+-            if isinstance(retval.exception, (SystemExit, KeyboardInterrupt)):
+-                raise retval.exception
++            exc = retval.exception
++            if isinstance(exc, ExceptionWithTraceback):
++                exc = exc.exc
++            if isinstance(exc, (SystemExit, KeyboardInterrupt)):
++                raise exc
+             return self.on_failure(retval, return_ok=True)
+         task_ready(self, successful=True)
+ 
+@@ -524,6 +528,9 @@
+         task_ready(self)
+         exc = exc_info.exception
+ 
++        if isinstance(exc, ExceptionWithTraceback):
++            exc = exc.exc
++
+         is_terminated = isinstance(exc, Terminated)
+         if is_terminated:
+             # If the task was terminated and the task was not cancelled due
+@@ -724,9 +731,11 @@
+         def on_success(self, failed__retval__runtime, **kwargs):
+             failed, retval, runtime = failed__retval__runtime
+             if failed:
+-                if isinstance(retval.exception, (
+-                        SystemExit, KeyboardInterrupt)):
+-                    raise retval.exception
++                exc = retval.exception
++                if isinstance(exc, ExceptionWithTraceback):
++                    exc = exc.exc
++                if isinstance(exc, (SystemExit, KeyboardInterrupt)):
++                    raise exc
+                 return self.on_failure(retval, return_ok=True)
+             task_ready(self)
+ 
+--- a/requirements/default.txt
++++ b/requirements/default.txt
+@@ -1,5 +1,5 @@
+ pytz>=2021.3
+-billiard>=3.6.4.0,<4.0
++billiard>=4.0.2,<5.0
+ kombu>=5.2.3,<6.0
+ vine>=5.0.0,<6.0
+ click>=8.0.3,<9.0
+--- a/t/unit/utils/test_collections.py
++++ b/t/unit/utils/test_collections.py
+@@ -146,8 +146,8 @@
+         except Exception:
+             einfo = ExceptionInfo()
+             assert str(einfo) == einfo.traceback
+-            assert isinstance(einfo.exception, LookupError)
+-            assert einfo.exception.args == ('The quick brown fox jumps...',)
++            assert isinstance(einfo.exception.exc, LookupError)
++            assert einfo.exception.exc.args == ('The quick brown fox jumps...',)
+             assert einfo.traceback
+ 
+             assert repr(einfo)
+--- a/t/unit/worker/test_request.py
++++ b/t/unit/worker/test_request.py
+@@ -158,7 +158,7 @@
+             self.app, uuid(), self.mytask_raising.name, {}, [4], {},
+         )
+         assert isinstance(ret, ExceptionInfo)
+-        assert ret.exception.args == (4,)
++        assert ret.exception.exc.args == (4,)
+ 
+     def test_execute_task_ignore_result(self):
+         @self.app.task(shared=False, ignore_result=True)
+@@ -388,7 +388,7 @@
+             task_failure,
+             sender=req.task,
+             task_id=req.id,
+-            exception=einfo.exception,
++            exception=einfo.exception.exc,
+             args=req.args,
+             kwargs=req.kwargs,
+             traceback=einfo.traceback,
+@@ -397,7 +397,7 @@
+             req.on_failure(einfo)
+ 
+         req.task.backend.mark_as_failure.assert_called_once_with(req.id,
+-                                                                 einfo.exception,
++                                                                 einfo.exception.exc,
+                                                                  request=req._context,
+                                                                  store_result=True)
+ 
+@@ -810,7 +810,7 @@
+         m = self.TaskMessage(self.mytask.name, args=(), kwargs='foo')
+         req = Request(m, app=self.app)
+         with pytest.raises(InvalidTaskError):
+-            raise req.execute().exception
++            raise req.execute().exception.exc
+ 
+     def test_on_hard_timeout_acks_late(self, patching):
+         error = patching('celery.worker.request.error')

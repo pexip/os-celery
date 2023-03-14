@@ -1,3 +1,44 @@
+celery (5.2.6-5) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Bas Couwenberg ]
+  * Add upstream patch to fix FTBFS with python3.11.
+    (closes: #1028148)
+
+  [ Paul Wise ]
+  * debian/copyright: replace Unicode linebreaks with regular linebreaks.
+  * Declare compliance with Debian Policy 4.6.2, no changes needed.
+  * Drop python3-nose from build-deps, already switched to pytest
+    (Closes: #1018326)
+  * Correct package names listed in celery wrapper script.
+  * Update broken link to daemonization docs
+  * Add more upstream metadata
+  * Update the homepage
+
+ -- Paul Wise <pabs@debian.org>  Sun, 22 Jan 2023 10:48:50 +0800
+
+celery (5.2.6-4) unstable; urgency=medium
+
+  * Actually bump billiard dependencies to 4.0.2
+
+ -- Paul Wise <pabs@debian.org>  Mon, 14 Nov 2022 08:43:00 +0800
+
+celery (5.2.6-3) unstable; urgency=medium
+
+  * Team upload.
+  * Backport upstream patch to fix compatibility with billiard 4.0.2 (Closes: #1020137)
+
+ -- Paul Wise <pabs@debian.org>  Sun, 13 Nov 2022 14:08:28 +0800
+
+celery (5.2.6-2) unstable; urgency=medium
+
+  * Add upstream patch to fix compatibility with billiard 4 (Closes:
+    #1015028).
+  * Bump Standards-Version to 4.6.1.0.
+
+ -- Michael Fladischer <fladi@debian.org>  Wed, 27 Jul 2022 18:57:53 +0000
+
 celery (5.2.6-1pexip2) pexip-bullseye; urgency=medium
 
   * Bullseye rebuild for ARM64 inclusion

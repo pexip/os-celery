@@ -13,7 +13,7 @@ Build-Depends:
  dvipng,
  locales,
  python3-all,
- python3-billiard (>= 3.6.3.0),
+ python3-billiard (>= 4.0.2),
  python3-boto3,
  python3-case,
  python3-click-didyoumean,
@@ -27,7 +27,6 @@ Build-Depends:
  python3-kombu (>= 5.0),
  python3-mock,
  python3-msgpack,
- python3-nose,
  python3-openssl,
  python3-pymongo,
  python3-pyparsing,
@@ -45,11 +44,11 @@ Build-Depends:
  python3-yaml,
  texlive-latex-base,
  texlive-latex-extra,
-Standards-Version: 4.6.0.1
+Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/python-team/packages/celery
 Vcs-Git: https://salsa.debian.org/python-team/packages/celery.git
-Homepage: https://github.com/celery/celery
+Homepage: https://docs.celeryq.dev/
 XS-Pexip-Upstream: http://deb.debian.org/debian/ bookworm
 
 Package: celery
@@ -127,7 +126,7 @@ Description: async task/job queue based on message passing (Documentation)
 Package: python3-celery
 Architecture: all
 Depends:
- python3-billiard (>= 3.3.0.23),
+ python3-billiard (>= 4.0.2),
  python3-click-didyoumean,
  python3-click-repl,
  python3-dateutil,

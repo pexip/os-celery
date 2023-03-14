@@ -1,0 +1,34 @@
+Description: use inspect.signature to make extension Python 3.11 compatible
+Author: Mathias Ertl <mati@er.tl>
+Origin: https://github.com/celery/celery/commit/e7f6ef9c40b432fe8e3c961453e8b15bd5aba22b
+Bug: https://github.com/celery/celery/pull/7879
+Bug-Debian: https://bugs.debian.org/1028148
+
+--- a/celery/contrib/sphinx.py
++++ b/celery/contrib/sphinx.py
+@@ -30,7 +30,7 @@ syntax.
+ 
+ Use ``.. autotask::`` to alternatively manually document a task.
+ """
+-from inspect import formatargspec, getfullargspec
++from inspect import signature
+ 
+ from sphinx.domains.python import PyFunction
+ from sphinx.ext.autodoc import FunctionDocumenter
+@@ -51,12 +51,10 @@ class TaskDocumenter(FunctionDocumenter)
+     def format_args(self):
+         wrapped = getattr(self.object, '__wrapped__', None)
+         if wrapped is not None:
+-            argspec = getfullargspec(wrapped)
+-            if argspec[0] and argspec[0][0] in ('cls', 'self'):
+-                del argspec[0][0]
+-            fmt = formatargspec(*argspec)
+-            fmt = fmt.replace('\\', '\\\\')
+-            return fmt
++            sig = signature(wrapped)
++            if "self" in sig.parameters or "cls" in sig.parameters:
++                sig = sig.replace(parameters=list(sig.parameters.values())[1:])
++            return str(sig)
+         return ''
+ 
+     def document_members(self, all_members=False):
