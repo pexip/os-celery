@@ -9,8 +9,8 @@
 0009-allow-any-version-of-pytest-timeout.patch
 0010-remove-pytest-celery-from-test-depends.patch
 0011-allow-any-pytest-version.patch
-# 0012-Avoid-importing-buf_t-from-billiard-s-compat-module-.patch
-# 629bc63cb516031fdbe360b69de9b60fbe3a2034.patch
+0012-Avoid-importing-buf_t-from-billiard-s-compat-module-.patch
+629bc63cb516031fdbe360b69de9b60fbe3a2034.patch
 python3.11-inspect.patch
 
 # pexip
