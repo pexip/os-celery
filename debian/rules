@@ -1,20 +1,20 @@
 #!/usr/bin/make -f
 
 export PYBUILD_NAME=celery
-export PYBUILD_AFTER_TEST=rm -rf {build_dir}/test.db {build_dir}/14
-export PYBUILD_TEST_ARGS= --ignore=t/unit/backends/test_base.py --ignore=t/unit/backends/test_rpc.py --ignore=t/unit/contrib/test_pytest.py --ignore=t/unit/concurrency/test_eventlet.py --ignore=t/unit/concurrency/test_prefork.py -k "not test_check_privileges[accept_content0] and not test_check_privileges[accept_content1] and not test_check_privileges[accept_content2] and not test_regression_worker_startup_info and not test_with_guid and not test_only_gid and not test_init_mongodb_dnspython2_pymongo3_seedlist" t/unit
+export PYBUILD_AFTER_TEST=rm -rf {build_dir}/test.db {build_dir}/15 {build_dir}/statefilename*
+export PYBUILD_TEST_ARGS= --ignore=t/unit/backends/test_base.py --ignore=t/unit/backends/test_gcs.py --ignore=t/unit/backends/test_rpc.py --ignore=t/unit/contrib/test_pytest.py --ignore=t/unit/concurrency/test_eventlet.py --ignore=t/unit/concurrency/test_prefork.py -k "not test_check_privileges[accept_content0] and not test_check_privileges[accept_content1] and not test_check_privileges[accept_content2] and not test_regression_worker_startup_info and not test_with_guid and not test_only_gid and not test_init_mongodb_dnspython2_pymongo3_seedlist" t/unit
 export PYTEST_PLUGINS=celery.contrib.pytest
 
 
 %:
 	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
 
-override_dh_installman:
-	docbook-to-man debian/manpage.celery.sgml > celery.1
-	dh_installman
+execute_before_dh_installman:
+	PYTHONPATH=$(CURDIR) python3 -c "from click_man.core import write_man_pages; from celery.bin.celery import celery; from celery import __version__; write_man_pages('celery', celery, version=__version__, target_dir='$(CURDIR)')"
 
 execute_after_dh_auto_install:
-	rm -rf $(CURDIR)/debian/python3-celery/usr/bin
+	mv debian/python3-celery/usr/bin/celery debian/celery/usr/bin
+	rmdir -p --ignore-fail-on-non-empty debian/python3-celery/usr/bin
 
 override_dh_sphinxdoc:
 ifeq (,$(findstring nodoc, $(DEB_BUILD_OPTIONS)))

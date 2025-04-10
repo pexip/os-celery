@@ -1,0 +1,23 @@
+From: Colin Watson <cjwatson@debian.org>
+Date: Thu, 10 Apr 2025 17:42:44 +0100
+Subject: Disable pytest --strict-markers
+
+We don't have the `celery` marker, probably because pytest-celery isn't
+packaged in Debian.
+
+Forwarded: not-needed
+Last-Update: 2025-04-10
+---
+ pyproject.toml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index dae3f95..aca1323 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,4 @@
+ [tool.pytest.ini_options]
+-addopts = "--strict-markers"
+ testpaths = "t/unit/"
+ python_classes = "test_*"
+ xfail_strict=true

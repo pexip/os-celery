@@ -8,32 +8,34 @@ Priority: optional
 Build-Depends:
  debhelper-compat (= 13),
  dh-python,
- docbook-to-man,
  dvipng,
  locales,
+ pybuild-plugin-pyproject,
  python3-all,
- python3-billiard (>= 4.0.2),
+ python3-azure <!nocheck>,
+ python3-billiard (>= 4.2.1),
  python3-boto3,
- python3-case,
  python3-click-didyoumean,
+ python3-click-man,
  python3-click-plugins,
  python3-click-repl,
  python3-dateutil,
  python3-doc,
  python3-eventlet,
  python3-flaky,
- python3-future (>=0.18.0),
- python3-kombu (>= 5.0),
+ python3-kombu (>= 5.5.2),
  python3-memcache,
- python3-mock,
+ python3-moto <!nocheck>,
  python3-msgpack,
  python3-openssl,
+ python3-pydantic <!nocheck>,
  python3-pymongo,
  python3-pyparsing,
  python3-pytest,
+ python3-pytest-click,
  python3-pytest-subtests,
  python3-pytest-timeout,
- python3-redis,
+ python3-redis (>= 4.5.2),
  python3-setuptools,
  python3-sphinx (>= 2.0.0),
  python3-sphinx-celery (>= 2.0.0),
@@ -44,11 +46,13 @@ Build-Depends:
  python3-yaml,
  texlive-latex-base,
  texlive-latex-extra,
+ tzdata-legacy,
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 Vcs-Browser: https://salsa.debian.org/python-team/packages/celery
 Vcs-Git: https://salsa.debian.org/python-team/packages/celery.git
 Homepage: https://docs.celeryq.dev/
+Testsuite: autopkgtest-pkg-pybuild
 
 Package: celery
 Architecture: all
@@ -56,6 +60,7 @@ Section: net
 Depends:
  python3-celery (= ${binary:Version}),
  ${misc:Depends},
+ ${python3:Depends},
 Breaks:
  python-celery-common (<< 4.4.2-3),
 Replaces:
@@ -79,20 +84,6 @@ Description: async task/job queue based on message passing (common files)
  python-django-celery package.
  .
  This package contains the common files of the library.
-
-Package: python-celery-common
-Architecture: all
-Section: oldlibs
-Depends:
- celery (>= ${binary:Version}),
- ${misc:Depends},
-Description: async task/job queue - transitional dummy package
- Celery is an open source asynchronous task queue/job queue based on
- distributed message passing. It is focused on real-time operation,
- but supports scheduling as well.
- .
- This is an empty transitional package to the "celery" package.
- Once installed it can be safely removed.
 
 Package: python-celery-doc
 Architecture: all
@@ -132,7 +123,6 @@ Depends:
  python3-ephem,
  python3-kombu (>= 5.0),
  python3-memcache,
- python3-pkg-resources,
  python3-pyparsing,
  python3-tz,
  python3-vine (>= 5.0),
