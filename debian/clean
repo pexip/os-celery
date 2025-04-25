@@ -1,4 +1,4 @@
-celery.1
+celery*.1
 debian/celeryd.*.init
 docs/.build/
 test.db

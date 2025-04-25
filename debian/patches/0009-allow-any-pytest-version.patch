@@ -1,0 +1,20 @@
+From: Thomas Goirand <zigo@debian.org>
+Date: Fri, 18 Dec 2020 09:35:43 +0100
+Subject: Allow any pytest version
+
+Forwarded: no
+Last-Update: 2025-04-10
+---
+ requirements/test.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/requirements/test.txt b/requirements/test.txt
+index 53c001b..0b3568f 100644
+--- a/requirements/test.txt
++++ b/requirements/test.txt
+@@ -1,4 +1,4 @@
+-pytest==8.3.5
++pytest>=7
+ pytest-rerunfailures>=14.0,<15.0; python_version >= "3.8" and python_version < "3.9"
+ pytest-rerunfailures>=15.0; python_version >= "3.9" and python_version < "4.0"
+ pytest-subtests<0.14.0; python_version < "3.9"

@@ -9,7 +9,7 @@ patch INTERSPHINX_MAPPING in sphinx_celery.conf in src:sphinx-celery.
  1 file changed, 4 deletions(-)
 
 diff --git a/docs/conf.py b/docs/conf.py
-index b4419a5..4384c39 100644
+index 2777cba..ac05c24 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
 @@ -20,10 +20,6 @@ globals().update(conf.build_config(

@@ -1,0 +1,21 @@
+From: Stefano Rivera <stefanor@debian.org>
+Date: Sat, 1 Feb 2020 16:38:49 +0100
+Subject: Don't require pre-commit - it isn't in Debian
+
+---
+ requirements/test.txt | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/requirements/test.txt b/requirements/test.txt
+index 527d975..714db18 100644
+--- a/requirements/test.txt
++++ b/requirements/test.txt
+@@ -11,8 +11,6 @@ boto3>=1.26.143
+ moto>=4.1.11,<5.1.0
+ # typing extensions
+ mypy==1.14.1; platform_python_implementation=="CPython"
+-pre-commit>=3.5.0,<3.8.0; python_version < '3.9'
+-pre-commit>=4.0.1; python_version >= '3.9'
+ -r extras/yaml.txt
+ -r extras/msgpack.txt
+ -r extras/mongodb.txt

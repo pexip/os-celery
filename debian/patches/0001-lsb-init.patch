@@ -15,7 +15,7 @@ Patch-Name: lsb-init.patch
  2 files changed, 24 insertions(+)
 
 diff --git a/extra/generic-init.d/celerybeat b/extra/generic-init.d/celerybeat
-index c875e33..47c34ef 100755
+index b554844..b34eb25 100755
 --- a/extra/generic-init.d/celerybeat
 +++ b/extra/generic-init.d/celerybeat
 @@ -15,11 +15,15 @@
@@ -58,7 +58,7 @@ index c875e33..47c34ef 100755
  CELERY_APP_ARG=""
  if [ ! -z "$CELERY_APP" ]; then
 diff --git a/extra/generic-init.d/celeryd b/extra/generic-init.d/celeryd
-index b928eeb..c93de50 100755
+index 13fddde..2ef11fd 100755
 --- a/extra/generic-init.d/celeryd
 +++ b/extra/generic-init.d/celeryd
 @@ -16,6 +16,7 @@

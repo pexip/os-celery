@@ -7,7 +7,7 @@ Subject: Remove external assets from documentation.
  <button/> element. Also a gittip button is loaded inside an <iframe/> which is
  removed. The logo image was loaded from the project website and is replaced
  with the local image file.
-Last-Update: 2014-02-11
+Last-Update: 2024-10-04
 Forwarded: not-needed
 
 Patch-Name: privacy.patch
@@ -15,11 +15,13 @@ Patch-Name: privacy.patch
  docs/_templates/sidebardonations.html | 9 ---------
  docs/conf.py                          | 1 -
  2 files changed, 10 deletions(-)
+ delete mode 100644 docs/_templates/sidebardonations.html
 
 diff --git a/docs/_templates/sidebardonations.html b/docs/_templates/sidebardonations.html
-index 2eebc8e..e69de29 100644
+deleted file mode 100644
+index 2eebc8e..0000000
 --- a/docs/_templates/sidebardonations.html
-+++ b/docs/_templates/sidebardonations.html
++++ /dev/null
 @@ -1,9 +0,0 @@
 -<iframe src="https://ghbtns.com/github-btn.html?user=celery&repo=celery&type=watch&count=true&size=large"
 -  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
@@ -31,7 +33,7 @@ index 2eebc8e..e69de29 100644
 -    </a>
 -</div>
 diff --git a/docs/conf.py b/docs/conf.py
-index f28a5c9..b4419a5 100644
+index 736240f..2777cba 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
 @@ -14,7 +14,6 @@ globals().update(conf.build_config(
