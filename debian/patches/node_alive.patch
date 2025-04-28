@@ -1,6 +1,6 @@
---- a/celery/apps/multi.py
-+++ b/celery/apps/multi.py
-@@ -199,7 +199,7 @@
+--- celery.orig/celery/apps/multi.py
++++ celery/celery/apps/multi.py
+@@ -198,7 +198,7 @@ class Node:
              try:
                  os.kill(pid, sig)
              except OSError as exc:
