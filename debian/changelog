@@ -1,3 +1,18 @@
+celery (5.5.2-2) unstable; urgency=medium
+
+  * Team upload.
+  * Fix typos in patch names.
+  * Make wheel metadata reproducible.
+
+ -- Colin Watson <cjwatson@debian.org>  Mon, 05 May 2025 13:23:03 +0100
+
+celery (5.5.2-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+
+ -- Colin Watson <cjwatson@debian.org>  Mon, 05 May 2025 11:22:54 +0100
+
 celery (5.5.1-1) unstable; urgency=medium
 
   * Team upload.

@@ -1,6 +1,6 @@
 From: Michael Fladischer <fladi@debian.org>
 Date: Tue, 31 Oct 2023 08:22:46 +0000
-Subject: Satisfy assinine sphinx 7.x parsing logic for copyright year
+Subject: Satisfy asinine sphinx 7.x parsing logic for copyright year
  substitution.
 
 Bug-Debian: https://bugs.debian.org/1042639

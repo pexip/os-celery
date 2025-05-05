@@ -1,10 +1,11 @@
 0001-lsb-init.patch
 0002-privacy.patch
 0003-Set-shell-in-su-invocation.patch
-0004-Disable-intershpinx-mapping-for-now.patch
+0004-Disable-intersphinx-mapping-for-now.patch
 0005-Don-t-require-pre-commit-it-isn-t-in-Debian.patch
 0007-disable-test-for-python3.8.patch
 0008-remove-pytest-celery-from-test-depends.patch
 0009-allow-any-pytest-version.patch
-0011-Satisfy-assinine-sphinx-7.x-parsing-logic-for-copyri.patch
+0011-Satisfy-asinine-sphinx-7.x-parsing-logic-for-copyrig.patch
 pytest-no-strict-markers.patch
+reproducible-metadata.patch
