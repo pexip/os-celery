@@ -1,3 +1,9 @@
+celery (5.5.2-2+pexip25u1) pexip-trixie; urgency=medium
+
+  * New upstream release
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Fri, 16 May 2025 08:56:11 +0100
+
 celery (5.5.2-2) unstable; urgency=medium
 
   * Team upload.
