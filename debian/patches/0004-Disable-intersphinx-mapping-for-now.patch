@@ -1,6 +1,6 @@
 From: Michael Fladischer <FladischerMichael@fladi.at>
 Date: Mon, 31 Jul 2017 17:45:13 +0200
-Subject: Disable intershpinx mapping for now.
+Subject: Disable intersphinx mapping for now.
 
 The best way to fix network requests when building the documentation would be to
 patch INTERSPHINX_MAPPING in sphinx_celery.conf in src:sphinx-celery.

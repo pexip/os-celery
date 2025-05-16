@@ -1,0 +1,42 @@
+From: Colin Watson <cjwatson@debian.org>
+Date: Mon, 5 May 2025 12:42:35 +0100
+Subject: Make wheel metadata reproducible
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+The various `Provides-Extra` sections in the built wheel's `METADATA`
+file were shuffled arbitrarily between different builds, which made it
+more difficult to detect other reproducibility issues (see
+https://reproducible-builds.org/).  There doesn't seem any reason for
+`EXTENSIONS` here to be a set; a tuple will work just as well, and adds
+an ordering guarantee.
+
+Forwarded: https://github.com/celery/celery/pull/9687
+Last-Update: 2025-05-05
+---
+ setup.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index b78932e..d5d68c2 100755
+--- a/setup.py
++++ b/setup.py
+@@ -9,7 +9,7 @@ NAME = 'celery'
+ 
+ # -*- Extras -*-
+ 
+-EXTENSIONS = {
++EXTENSIONS = (
+     'arangodb',
+     'auth',
+     'azureblockblob',
+@@ -43,7 +43,7 @@ EXTENSIONS = {
+     'yaml',
+     'zookeeper',
+     'zstd'
+-}
++)
+ 
+ # -*- Distribution Meta -*-
+ 
