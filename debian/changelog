@@ -1,3 +1,9 @@
+celery (5.5.2-2+pexip25u4) pexip-trixie; urgency=medium
+
+  * Also remove pyparsing dep as the need for this this was removed ages ago.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 05 Feb 2026 14:56:58 +0000
+
 celery (5.5.2-2+pexip25u3) pexip-trixie; urgency=medium
 
   * Remove ephem support (we do not need solar calendar schedulers)
