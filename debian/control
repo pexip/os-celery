@@ -122,7 +122,6 @@ Depends:
  python3-click-didyoumean,
  python3-click-repl,
  python3-dateutil,
- python3-ephem,
  python3-kombu (>= 5.0),
  python3-memcache,
  python3-pyparsing,
