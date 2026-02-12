@@ -1,3 +1,5 @@
+Disable all cassandra tests as we disable support for it
+
 --- celery.orig/t/unit/backends/test_cassandra.py
 +++ celery/t/unit/backends/test_cassandra.py
 @@ -8,271 +8,271 @@ from celery import states

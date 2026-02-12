@@ -1,3 +1,5 @@
+Handle EPERM properly when killing a process
+
 --- celery.orig/celery/apps/multi.py
 +++ celery/celery/apps/multi.py
 @@ -198,7 +198,7 @@ class Node:
